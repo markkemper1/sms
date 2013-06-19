@@ -1,0 +1,14 @@
+# Build Folders (you can keep bin if you'd like, to store dlls and pdbs)
+bin
+obj
+
+*.user
+ReSharper
+/src/packages
+/src/.switchReferences.xml
+/src/*.suo
+/src/_ReSharper*
+*.suo
+	
+# mstest test results
+TestResults
