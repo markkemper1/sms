@@ -141,7 +141,7 @@ namespace Sms.RoutingService
             {
                 try
                 {
-                    string queueIdentifier = message.Item.Body;
+                    string queueIdentifier = RouterSettings.ReceiveMessageQueueNamePrefix + message.Item.Headers[RouterSettings.ServiceNameHeaderKey];
 
                     var configInfo = Config.Get(message.Item.ToAddress);
 

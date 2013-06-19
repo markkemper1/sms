@@ -47,6 +47,7 @@
     <Compile Include="Messaging\IMessageSender.cs" />
     <Compile Include="Messaging\Reciever.cs" />
     <Compile Include="Messaging\Result.cs" />
+    <Compile Include="Routing\BrokerProxingReciever.cs" />
     <Compile Include="Routing\IRouter.cs" />
     <Compile Include="Routing\Router.cs" />
     <Compile Include="Routing\RouterFactory.cs" />

@@ -28,10 +28,9 @@ namespace Sms.Routing
 
         public IReciever<SmsMessage> Receiver(string serviceName)
         {
-            string recieveQueue = Guid.NewGuid().ToString();
-            var receiver = ReceiverFactory(recieveQueue);
+            var receiver = ReceiverFactory(serviceName);
 
-            var proxy = new BrokerProxingReciever(SignalNextMessage, receiver, serviceName, recieveQueue);
+            var proxy = new BrokerProxingReciever(SignalNextMessage, receiver, serviceName);
 
             return proxy;
         }
@@ -59,41 +58,6 @@ namespace Sms.Routing
         {
             SignalNextMessage.Dispose();
             viaBrokerSender.Dispose();
-        }
-    }
-
-    public class BrokerProxingReciever : IReciever<SmsMessage>
-    {
-        private IMessageSender SendNextMessage { get; set; }
-        private IReciever<SmsMessage> Reciever { get; set; }
-        private string ServiceName { get; set; }
-        public string RecieveQueueName { get; private set; }
-
-        public BrokerProxingReciever(IMessageSender sendNextMessage, IReciever<SmsMessage> reciever, string serviceName, string recieveQueueName)
-        {
-            if (sendNextMessage == null) throw new ArgumentNullException("sendNextMessage");
-            if (reciever == null) throw new ArgumentNullException("reciever");
-            SendNextMessage = sendNextMessage;
-            Reciever = reciever;
-            ServiceName = serviceName;
-            RecieveQueueName = recieveQueueName;
-        }
-
-        public Result<SmsMessage> Receive(TimeSpan? timeout = null)
-        {
-            SendNextMessage.Send(new SmsMessage(ServiceName, RecieveQueueName, new Dictionary<string, string>()
-                {
-                    {RouterSettings.ServiceNameHeaderKey, ServiceName}
-                }));
-
-            var receivedMessage = Reciever.Receive(timeout);
-
-            return receivedMessage;
-        }
-
-        public void Dispose()
-        {
-            Reciever.Dispose();
         }
     }
 }

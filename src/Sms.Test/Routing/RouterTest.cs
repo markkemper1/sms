@@ -71,7 +71,7 @@ namespace Sms.Routing.Test
 
             reciever.ShouldBeTypeOf<BrokerProxingReciever>();
 
-            NextMessage.Sent[0].Body.ShouldBe(((BrokerProxingReciever)reciever).RecieveQueueName);
+            NextMessage.Sent[0].Headers.First().Value.ShouldBe("test");
         }
 
         [Test]
@@ -90,8 +90,8 @@ namespace Sms.Routing.Test
             Receiver.Messages.Enqueue(new SmsMessage("test", "xx"));
             var message2 = reciever.Receive();
 
-            NextMessage.Sent.Count.ShouldBe(2);
-            NextMessage.Sent[1].ToAddress.ShouldBe("test");
+            NextMessage.Sent.Count.ShouldBe(1);
+            NextMessage.Sent[0].ToAddress.ShouldBe("test");
             message2.ShouldNotBe(null);
 
         }

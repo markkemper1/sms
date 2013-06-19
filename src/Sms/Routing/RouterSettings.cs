@@ -5,6 +5,7 @@
         private const string nextMessageQueueName = "sms-router-receiveNextMessage";
         private const string sendMessageQueueName = "sms-router-sendMessage";
         private const string serviceNameHeaderKey = "sms-router-serviceName";
+        private const string receiveMessageQueueNamePrefix = "sms-router-receive-";
         private const string sendErrorQueueName = "sms-router-sendErrors";
 
         public static string ProviderName {
@@ -33,5 +34,12 @@
         {
             get { return Config.Setting("Sms.Router.SendErrorQueueName", sendErrorQueueName).Value; }
         }
+
+        public static string ReceiveMessageQueueNamePrefix
+        {
+            get { return Config.Setting("Sms.Router.ReceiveMessageQueueNamePrefix", receiveMessageQueueNamePrefix).Value; }
+        }
+
+        
     }
 }
