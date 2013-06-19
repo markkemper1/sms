@@ -5,10 +5,8 @@ using Sms.Routing;
 
 namespace Sms.Services
 {
-    public class Exchange
+    public class Exchange : IDisposable
     {
-        //IDictionary<string, IMessageReciever> receivers = new Dictionary<string, IMessageReciever>();
-
         private IRouter Router { get; set; }
 
         public Exchange()
@@ -115,6 +113,10 @@ namespace Sms.Services
             return new ServiceDefinitionAttribute(type.Name, "json");
         }
 
+        public void Dispose()
+        {
+            if(Router != null)
+                Router.Dispose();
+        }
     }
-    // serialize
 }
