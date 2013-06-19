@@ -9,23 +9,23 @@
         public static string ProviderName {
             get
             {
-                return Config.Require("Router.ProviderName").Value;
+                return Config.Require("Sms.Router.ProviderName").Value;
             }
         }
         
         public static string SendQueueName
         {
-            get { return Config.Setting("Router.SendQueueName", sendMessageQueueName).Value; }
+            get { return Config.Setting("Sms.Router.SendQueueName", sendMessageQueueName).Value; }
         }
 
         public static string NextMessageQueueName
         {
-            get { return Config.Setting("Router.NextMessageQueueName", nextMessageQueueName).Value; }
+            get { return Config.Setting("Sms.Router.NextMessageQueueName", nextMessageQueueName).Value; }
         }
 
         public static string ServiceNameHeaderKey
         {
-            get { return Config.Setting("Router.ServiceNameHeaderKey", serviceNameHeaderKey).Value; }
+            get { return Config.Setting("Sms.Router.ServiceNameHeaderKey", serviceNameHeaderKey).Value; }
         }
 
     }
