@@ -14,7 +14,7 @@ namespace Sms.Msmq
             return new MsmqMessageSender(queueName);
         }
 
-        public IMessageReciever Reciever(string queueName)
+        public IReciever<SmsMessage> Reciever(string queueName)
         {
             return new MsmqMessageReceiver(queueName);
         }

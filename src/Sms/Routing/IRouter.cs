@@ -6,7 +6,7 @@ namespace Sms.Routing
     public interface IRouter : IDisposable
     {
         void Send(string serviceName, string message);
-        IMessageReciever Receiver(string serviceName);
+        IReciever<SmsMessage> Receiver(string serviceName);
         
     }
 }

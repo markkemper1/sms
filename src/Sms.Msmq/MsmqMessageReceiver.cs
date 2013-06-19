@@ -4,7 +4,7 @@ using Sms.Messaging;
 
 namespace Sms.Msmq
 {
-    public class MsmqMessageReceiver : IMessageReciever, IDisposable
+    public class MsmqMessageReceiver : IReciever<SmsMessage>, IDisposable
     {
         readonly MessageQueue messageQueue = null;
         //private bool stopping;

@@ -16,7 +16,7 @@ namespace Sms.Test
         {
             var reciever = SmsFactory.Receiver("test", "MyQueue");
 
-            Assert.That(reciever, Is.AssignableTo<IMessageReciever>());
+            Assert.That(reciever, Is.AssignableTo<IReciever<SmsMessage>>());
         }
     }
 }

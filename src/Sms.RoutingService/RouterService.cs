@@ -214,10 +214,10 @@ namespace Sms.RoutingService
     public class PipingMessageReciever : IDisposable
     {
         private readonly TimeSpan timeSpan;
-        public IMessageReciever Reciever { get; set; }
+        public IReciever<SmsMessage> Reciever { get; set; }
         public IMessageSender ToQueue { get; set; }
 
-        public PipingMessageReciever(IMessageReciever reciever, IMessageSender toQueue, TimeSpan timeSpan)
+        public PipingMessageReciever(IReciever<SmsMessage> reciever, IMessageSender toQueue, TimeSpan timeSpan)
         {
             this.timeSpan = timeSpan;
             Reciever = reciever;

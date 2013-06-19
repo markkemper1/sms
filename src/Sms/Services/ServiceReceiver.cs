@@ -10,9 +10,9 @@ namespace Sms.Services
     public class ServiceReceiver<T> : IReciever<T>
     {
         private readonly ISerializer serializer;
-        private IMessageReciever reciever;
+        private IReciever<SmsMessage> reciever;
 
-        public ServiceReceiver(IMessageReciever reciever, ISerializer serializer)
+        public ServiceReceiver(IReciever<SmsMessage> reciever, ISerializer serializer)
         {
             this.reciever = reciever;
             this.serializer = serializer;

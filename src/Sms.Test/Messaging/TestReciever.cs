@@ -3,7 +3,7 @@ using Sms.Messaging;
 
 namespace Sms.Test
 {
-    public class TestReciever : IMessageReciever
+    public class TestReciever : IReciever<SmsMessage>
     {
         public void Subscribe(Func<SmsMessage, bool> action)
         {

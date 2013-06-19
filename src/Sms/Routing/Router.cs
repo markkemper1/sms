@@ -8,10 +8,10 @@ namespace Sms.Routing
     {
         private static readonly object lockMe = new object();
         private IMessageSender SignalNextMessage { get; set; }
-        private Func<string, IMessageReciever> ReceiverFactory { get; set; }
+        private Func<string, IReciever<SmsMessage>> ReceiverFactory { get; set; }
         private readonly IMessageSender viaBrokerSender;
 
-        public Router(IMessageSender viaBrokerSender, IMessageSender signalNextMessage, Func<string, IMessageReciever> receiverFactory)
+        public Router(IMessageSender viaBrokerSender, IMessageSender signalNextMessage, Func<string, IReciever<SmsMessage>> receiverFactory)
         {
             SignalNextMessage = signalNextMessage;
             ReceiverFactory = receiverFactory;
@@ -26,7 +26,7 @@ namespace Sms.Routing
                 }));
         }
 
-        public IMessageReciever Receiver(string serviceName)
+        public IReciever<SmsMessage> Receiver(string serviceName)
         {
             string recieveQueue = Guid.NewGuid().ToString();
             var receiver = ReceiverFactory(recieveQueue);
@@ -62,14 +62,14 @@ namespace Sms.Routing
         }
     }
 
-    public class BrokerProxingReciever : IMessageReciever
+    public class BrokerProxingReciever : IReciever<SmsMessage>
     {
         private IMessageSender SendNextMessage { get; set; }
-        private IMessageReciever Reciever { get; set; }
+        private IReciever<SmsMessage> Reciever { get; set; }
         private string ServiceName { get; set; }
         public string RecieveQueueName { get; private set; }
 
-        public BrokerProxingReciever(IMessageSender sendNextMessage, IMessageReciever reciever, string serviceName, string recieveQueueName)
+        public BrokerProxingReciever(IMessageSender sendNextMessage, IReciever<SmsMessage> reciever, string serviceName, string recieveQueueName)
         {
             if (sendNextMessage == null) throw new ArgumentNullException("sendNextMessage");
             if (reciever == null) throw new ArgumentNullException("reciever");

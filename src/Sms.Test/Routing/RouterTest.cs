@@ -96,14 +96,14 @@ namespace Sms.Routing.Test
 
         }
 
-        private IMessageReciever Factory(string queueName)
+        private IReciever<SmsMessage> Factory(string queueName)
         {
             Receiver = new StubReceiver();
             return Receiver;
         }
     }
 
-    public class StubReceiver : IMessageReciever
+    public class StubReceiver : IReciever<SmsMessage>
     {
         public int DisposedCount = 0;
 

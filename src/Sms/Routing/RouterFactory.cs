@@ -10,7 +10,7 @@ namespace Sms.Routing
             var sender = SmsFactory.Sender(RouterSettings.ProviderName, RouterSettings.SendQueueName);
             var nextMessage = SmsFactory.Sender(RouterSettings.ProviderName, RouterSettings.NextMessageQueueName);
 
-            Func<string, IMessageReciever> receiverFactory = s => SmsFactory.Receiver(RouterSettings.ProviderName, s);
+            Func<string, IReciever<SmsMessage>> receiverFactory = s => SmsFactory.Receiver(RouterSettings.ProviderName, s);
 
             return new Router(sender,nextMessage, receiverFactory);
         }
