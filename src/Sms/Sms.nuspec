@@ -1,0 +1,31 @@
+<?xml version="1.0"?>
+<package xmlns="http://schemas.microsoft.com/packaging/2010/07/nuspec.xsd">
+    <metadata>
+        <id>$id$</id>
+        <version>$version$</version>
+        <authors>$author$</authors>
+        <owners>$author$</owners>
+        <projectUrl>http://github.com/markkemper1/sms</projectUrl>
+        <requireLicenseAcceptance>false</requireLicenseAcceptance>
+        <summary>
+          A simple library for sending transactional messages.
+
+		  This library contains the core code without any hard dependencies. 
+		  
+		  There are three layers: 
+			* Messaging - defines a message, a sending interface and a recieving interface. Also contains a factory to build senders and receieves
+			* Routing - Allows services to send messages to named services (so clients dont need to know the protocol, port address username, password etc. of where the actual service is running)
+			* Services - Builds on the routing and adds typed messages with serialization support.
+        </summary>
+        <description>
+            A simple library for sending transactional messages.
+
+            This library contains the core code without any hard dependencies.
+
+            There are three layers:
+            * Messaging - defines a message, a sending interface and a recieving interface. Also contains a factory to build senders and receieves
+            * Routing - Allows services to send messages to named services (so clients dont need to know the protocol, port address username, password etc. of where the actual service is running)
+            * Services - Builds on the routing and adds typed messages with serialization support.
+        </description>
+    </metadata>
+</package>

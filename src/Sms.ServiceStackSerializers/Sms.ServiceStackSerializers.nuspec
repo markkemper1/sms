@@ -1,0 +1,17 @@
+<?xml version="1.0"?>
+<package xmlns="http://schemas.microsoft.com/packaging/2010/07/nuspec.xsd">
+    <metadata>
+        <id>$id$</id>
+        <version>$version$</version>
+        <authors>$author$</authors>
+        <owners>$author$</owners>
+        <projectUrl>http://github.com/markkemper1/sms</projectUrl>
+        <requireLicenseAcceptance>false</requireLicenseAcceptance>
+        <summary>
+         Service stack serializers for sms. Includes XML and JSON.
+        </summary>
+        <description>
+            Service stack serializers for sms. Includes XML and JSON.
+        </description>
+    </metadata>
+</package>
