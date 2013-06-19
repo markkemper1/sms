@@ -13,5 +13,8 @@
         <description>
             Service stack serializers for sms. Includes XML and JSON.
         </description>
+        <dependencies>
+            <dependency id="Sms" version="0.0.0" />
+        </dependencies>
     </metadata>
 </package>
