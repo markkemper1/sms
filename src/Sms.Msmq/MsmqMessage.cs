@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.IO;
-using ServiceStack.Text;
+using System.Linq;
 using Sms.Messaging;
 
 namespace Sms.Msmq
