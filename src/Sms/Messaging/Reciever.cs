@@ -47,7 +47,7 @@ namespace Sms.Messaging
                         {
                             action(message);
                         }
-                        catch (Exception ex)
+                        catch 
                         {
                             message.Failed();
                             throw;
