@@ -40,15 +40,10 @@ namespace Sms.Msmq
             messageQueue.Dispose();
         }
 
-        private MessageQueueTransaction transaction = null;
 
         public ReceivedMessage Receive(TimeSpan? timeout = null)
         {
-            if (transaction != null)
-                throw new ArgumentException(
-                    "You are already processing a message, please called Remove or Add back to Queue on the message before receiving another message");
-
-            transaction = new MessageQueueTransaction();
+            var transaction = new MessageQueueTransaction();
 
             transaction.Begin();
             try
@@ -64,16 +59,19 @@ namespace Sms.Msmq
 
                     var message = ((MsmqMessage) raw.Body).ToMessage();
 
-                    return new ReceivedMessage(message, success =>
+                    Func<MessageQueueTransaction, Action<bool>> onRecieve = queueTransaction =>
                         {
-                            if (success)
-                                transaction.Commit();
-                            else
-                                transaction.Abort();
+                            Action<bool> recieveHandler = x =>
+                                {
+                                    if (x)
+                                        queueTransaction.Commit();
+                                    else
+                                        queueTransaction.Abort();
+                                };
+                            return recieveHandler;
+                        };
 
-                            transaction = null;
-
-                        });
+                    return new ReceivedMessage(message, onRecieve(transaction));
                 }
             }
             catch (MessageQueueException ex)
