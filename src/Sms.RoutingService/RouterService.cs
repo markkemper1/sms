@@ -49,6 +49,12 @@ namespace Sms.RoutingService
                 return;
             }
 
+            if (section.Keys.Count == 0)
+            {
+                log.Error("Configuration does not contain any services, configuration key count == 0");
+                return;
+            }
+
             var services = new List<ServiceEndpoint>();
 
             foreach (string key in section.Keys)
