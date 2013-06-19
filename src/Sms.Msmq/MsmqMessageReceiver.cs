@@ -24,24 +24,11 @@ namespace Sms.Msmq
 
         public void Dispose()
         {
-            //this.Stop();
-
-            //int times = 3;
-
-            //while (times > 0)
-            //{
-            //    if(!Receiving)
-            //        break;
-
-            //    Thread.Sleep(700);
-            //    times--;
-            //}
-
             messageQueue.Dispose();
         }
 
 
-        public ReceivedMessage Receive(TimeSpan? timeout = null)
+        public Result<SmsMessage> Receive(TimeSpan? timeout = null)
         {
             var transaction = new MessageQueueTransaction();
 
@@ -67,11 +54,13 @@ namespace Sms.Msmq
                                         queueTransaction.Commit();
                                     else
                                         queueTransaction.Abort();
+
+                                    queueTransaction.Dispose();
                                 };
                             return recieveHandler;
                         };
 
-                    return new ReceivedMessage(message, onRecieve(transaction));
+                    return new Result<SmsMessage>(message, onRecieve(transaction));
                 }
             }
             catch (MessageQueueException ex)

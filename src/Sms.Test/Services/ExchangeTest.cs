@@ -44,12 +44,12 @@ namespace Sms.Services.Test
 
             exchange.Send(new HelloWorldMessage(){ Text = "Hi there. Its " + DateTime.Now.ToString("HH:mm")});
 
-            var message = exchange.Receive<HelloWorldMessage>(TimeSpan.FromSeconds(5));
+            var message = exchange.ReceiveOne<HelloWorldMessage>(TimeSpan.FromSeconds(5));
 
-            exchange.Processed(true);
+            message.Processed(true);
 
             Assert.That(message, Is.Not.Null);
-            Console.WriteLine(message.Text);
+            Console.WriteLine(message.Item.Text);
 
         }
 

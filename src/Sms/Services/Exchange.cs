@@ -5,10 +5,9 @@ using Sms.Routing;
 
 namespace Sms.Services
 {
-    public class Exchange : IDisposable
+    public class Exchange
     {
-        IDictionary<string, IMessageReciever> receivers = new Dictionary<string, IMessageReciever>();
-        private ReceivedMessage CurrentMessage;
+        //IDictionary<string, IMessageReciever> receivers = new Dictionary<string, IMessageReciever>();
 
         private IRouter Router { get; set; }
 
@@ -26,53 +25,33 @@ namespace Sms.Services
         {
             var config = GetServiceConfiguration<T>();
 
-            ISerializer serializer = GetSeralizer(config.Serializer);
+            var serializer = GetSeralizer(config.Serializer);
 
             Router.Send(config.ServiceName, serializer.Serialize(request));
         }
 
-        public T Receive<T>(TimeSpan? timeout = null) where T : class, new()
+        public Result<T> ReceiveOne<T>(TimeSpan? timeout = null) where T : class, new()
         {
-            if (CurrentMessage != null)
-                throw new ArgumentException("You must call message processed before receiving more messages");
-
             var config = GetServiceConfiguration<T>();
 
-            var receiver = GetReciever(config.ServiceName);
-
-            CurrentMessage = receiver.Receive(timeout);
-
-            if (CurrentMessage == null)
-                return default(T);
-
-            var serializer = GetSeralizer(config.Serializer);
-
-            return (T)serializer.Deserialize(typeof(T), CurrentMessage.Body);
-        }
-
-        public void Processed(bool successfully = true)
-        {
-            if (successfully)
-                CurrentMessage.Success();
-            else
-                CurrentMessage.Failed();
-
-        }
-
-        private IMessageReciever GetReciever(string serviceName)
-        {
-            if (!receivers.ContainsKey(serviceName))
+            using (var receiver = CreateReciever<T>())
             {
-                lock (receivers)
-                {
-                    if (!receivers.ContainsKey(serviceName))
-                    {
-                        receivers[serviceName] = Router.Receiver(serviceName);
-                    }
-                }
+                var result = receiver.Receive(timeout);
+                return result;
             }
+        }
 
-            return receivers[serviceName];
+        public RecieveTask<T> Receiver<T>(Action<Result<T>> action) where T : class, new()
+        {
+            return new RecieveTask<T>(this.CreateReciever<T>(), action);
+        }
+
+        private IReciever<T> CreateReciever<T>()
+        {
+            var config = GetServiceConfiguration<T>();
+            var receiver = Router.Receiver(config.ServiceName);
+             var serializer = GetSeralizer(config.Serializer);
+             return new ServiceReceiver<T>(receiver, serializer);
         }
 
         private Dictionary<string, ISerializer> serializers = new Dictionary<string, ISerializer>();
@@ -136,19 +115,6 @@ namespace Sms.Services
             return new ServiceDefinitionAttribute(type.Name, "json");
         }
 
-        public void Dispose()
-        {
-            lock (receivers)
-            {
-                foreach (var r in receivers)
-                {
-                    r.Value.Dispose();
-                }
-                receivers.Clear();
-            }
-
-            Router.Dispose();
-        }
     }
     // serialize
 }

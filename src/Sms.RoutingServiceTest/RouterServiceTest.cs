@@ -27,14 +27,16 @@ namespace Sms.RoutingServiceTest
         [Test]
         public void should_send_messages()
         {
-            var reciever = new Reciever(SmsFactory.Receiver("msmq", "helloWorldService"));
-
             int receivedCount = 0;
-            Task.Factory.StartNew(() => reciever.Subscribe(message =>
+
+            var reciever = new RecieveTask<SmsMessage>(SmsFactory.Receiver("msmq", "helloWorldService"), message =>
                 {
                     receivedCount++;
                     message.Success();
-                }));
+                });
+
+
+            reciever.Start();
 
             var router = new RouterService();
             router.Config.Load(new List<ServiceEndpoint>()
@@ -51,8 +53,8 @@ namespace Sms.RoutingServiceTest
 
             Thread.Sleep(1000);
 
-            Stopwatch watch = new Stopwatch();
-            
+            var watch = new Stopwatch();
+
             //warm up
             Router.Instance.Send("testService", "Test me, hello?");
 
@@ -88,7 +90,7 @@ namespace Sms.RoutingServiceTest
 
 
             var router = new RouterService();
-            
+
             router.Config.Load(new List<ServiceEndpoint>()
                 {
                     new ServiceEndpoint()
@@ -101,46 +103,42 @@ namespace Sms.RoutingServiceTest
 
             router.Start();
 
-            Reciever reciever = null;
+            RecieveTask<SmsMessage> reciever = null;
             Thread.Sleep(1000);
 
-               Task.Factory.StartNew(() =>
-                   {
-                       reciever = new Reciever(Router.Instance.Receiver("testService_send"));
-                        
-                        reciever.Subscribe(message =>
-                            {
-                                receivedCount++;
-                                Console.WriteLine(message.Body);
-                                message.Success();
-                            });
-                    });
 
-                Thread.Sleep(1000);
+            reciever = new RecieveTask<SmsMessage>(Router.Instance.Receiver("testService_send"), message =>
+                 {
+                     receivedCount++;
+                     Console.WriteLine(message.Item.Body);
+                     message.Success();
+                 });
 
-                router.Stop();
+            reciever.Start();
 
-                if (reciever != null)
-                    reciever.Dispose();
+            Thread.Sleep(1000);
 
-                Thread.Sleep(1000);
+            router.Stop();
 
-                Assert.That(receivedCount, Is.EqualTo(1));
+            reciever.Dispose();
+
+            Thread.Sleep(1000);
+
+            Assert.That(receivedCount, Is.EqualTo(1));
         }
 
 
         [Test]
         public void should_put_unknown_messages_on_error_queue()
         {
-            var reciever = new Reciever(SmsFactory.Receiver("msmq", RouterSettings.SendErrorQueueName));
-
-
             int receivedCount = 0;
-            Task.Factory.StartNew(() => reciever.Subscribe(message =>
+            var reciever = new RecieveTask<SmsMessage>(SmsFactory.Receiver("msmq", RouterSettings.SendErrorQueueName), message =>
             {
                 receivedCount++;
                 message.Success();
-            }));
+            });
+
+            reciever.Start();
 
             var router = new RouterService();
 
@@ -170,14 +168,15 @@ namespace Sms.RoutingServiceTest
         [Test]
         public void should_process_errors_on_startup()
         {
-            var reciever = new Reciever(SmsFactory.Receiver("msmq", "helloWorldService"));
-
             int receivedCount = 0;
-            Task.Factory.StartNew(() => reciever.Subscribe(message =>
+
+            var reciever = new RecieveTask<SmsMessage>(SmsFactory.Receiver("msmq", "helloWorldService"), message =>
             {
                 receivedCount++;
                 message.Success();
-            }));
+            });
+
+            reciever.Start();
 
             var router = new RouterService();
 

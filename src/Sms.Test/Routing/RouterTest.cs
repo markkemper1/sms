@@ -42,7 +42,7 @@ namespace Sms.Routing.Test
 
             Sender.Sent.Count.ShouldBe(1);
             Sender.Sent[0].Headers.Keys.Count.ShouldBe(1);
-            Sender.Sent[0].Headers.Keys.First().ShouldBe("broker.serviceName");
+            Sender.Sent[0].Headers.Keys.First().ShouldBe("sms-router-serviceName");
             Sender.Sent[0].Headers.Values.First().ShouldBe("test");
         }
 
@@ -112,11 +112,12 @@ namespace Sms.Routing.Test
             DisposedCount += 1;
         }
 
-        public ReceivedMessage Receive(TimeSpan? timeout = null)
+        public Result<SmsMessage> Receive(TimeSpan? timeout = null)
         {
             if (Messages.Count == 0) return null;
             var message = Messages.Peek();
-            return new ReceivedMessage(message, b => {
+            return new Result<SmsMessage>(message, b =>
+            {
                                                          if (b) Messages.Dequeue();
             });
         }

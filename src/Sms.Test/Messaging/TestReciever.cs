@@ -13,7 +13,7 @@ namespace Sms.Test
         {
         }
 
-        public ReceivedMessage Receive(TimeSpan? timeout = null)
+        public Result<SmsMessage> Receive(TimeSpan? timeout = null)
         {
             return null;
         }

@@ -16,7 +16,7 @@ namespace Sms.RoutingService
     public class RouterService
     {
         private static readonly ILog log = LogManager.GetLogger(typeof(RouterService));
-        private Reciever sendQueue, nextMessageQueue;
+        private RecieveTask<SmsMessage> sendQueueTask, nextMessageQueueTask;
 
         public RouterService()
         {
@@ -81,13 +81,10 @@ namespace Sms.RoutingService
         {
 
             //Process Errors
-            using (var errorQueue =
-                    new Reciever(SmsFactory.Receiver(RouterSettings.ProviderName, RouterSettings.SendErrorQueueName)))
+            using (var errorQueue = SmsFactory.Receiver(RouterSettings.ProviderName, RouterSettings.SendErrorQueueName))
             {
-               
-
-                    var errorErrors = new List<ReceivedMessage>();
-                    var errorSuccess = new List<ReceivedMessage>();
+                    var errorErrors = new List<Result<SmsMessage>>();
+                    var errorSuccess = new List<Result<SmsMessage>>();
 
                 while (true)
                 {
@@ -96,7 +93,7 @@ namespace Sms.RoutingService
                     if (error == null)
                         break;
 
-                    if (Config.IsKnown(error.ToAddress))
+                    if (Config.IsKnown(error.Item.ToAddress))
                         errorSuccess.Add(error);
                     else
                         errorErrors.Add(error);
@@ -109,7 +106,7 @@ namespace Sms.RoutingService
 
                     foreach (var e in errorSuccess)
                     {
-                        reQueue.Send(e);
+                        reQueue.Send(e.Item);
                         e.Success();
                     }
                 }
@@ -117,37 +114,36 @@ namespace Sms.RoutingService
 
 
             //Listen on the send Queue and forward messages to the configured service.
-            sendQueue = new Reciever(SmsFactory.Receiver(RouterSettings.ProviderName, RouterSettings.SendQueueName));
+            sendQueueTask = new RecieveTask<SmsMessage>(SmsFactory.Receiver(RouterSettings.ProviderName, RouterSettings.SendQueueName),
+                                                    message =>
+                                                        {
+                                                            try
+                                                            {
+                                                                var configInfo = Config.IsKnown(message.Item.ToAddress) ? Config.Get(message.Item.ToAddress) : ErrorConfig;
 
-            Task.Factory.StartNew(() => sendQueue.Subscribe(message =>
-                {
-                    try
-                    {
-                        var configInfo = Config.IsKnown(message.ToAddress) ?  Config.Get(message.ToAddress) : ErrorConfig;
+                                                                using (var sender = SmsFactory.Sender(configInfo.ProviderName, configInfo.QueueIdentifier))
+                                                                {
+                                                                    sender.Send(message.Item);
+                                                                    message.Success();
+                                                                }
+                                                            }
+                                                            catch (Exception ex)
+                                                            {
+                                                                log.Fatal("Exception", ex);
+                                                                throw;
+                                                            }
 
-                        using (var sender = SmsFactory.Sender(configInfo.ProviderName, configInfo.QueueIdentifier))
-                        {
-                            sender.Send(message);
-                            message.Success();
-                        }
-                    }
-                    catch (Exception ex)
-                    {
-                        log.Fatal("Exception", ex);
-                        throw;
-                    }
-                }));
-
+                                                        });
+            sendQueueTask.Start();
 
             //Listen for the next message queue, Then setup a receive (if needed) and forward onto the unique queue provided..
-            nextMessageQueue = new Reciever(SmsFactory.Receiver(RouterSettings.ProviderName, RouterSettings.NextMessageQueueName));
-            Task.Factory.StartNew(() => nextMessageQueue.Subscribe(message =>
+            nextMessageQueueTask = new RecieveTask<SmsMessage>(SmsFactory.Receiver(RouterSettings.ProviderName, RouterSettings.NextMessageQueueName), (message) =>
             {
                 try
                 {
-                    string queueIdentifier = message.Body;
+                    string queueIdentifier = message.Item.Body;
 
-                    var configInfo = Config.Get(message.ToAddress);
+                    var configInfo = Config.Get(message.Item.ToAddress);
 
                     if (!receivers.ContainsKey(queueIdentifier))
                     {
@@ -166,7 +162,9 @@ namespace Sms.RoutingService
                     log.Fatal("Exception", ex);
                     throw;
                 }
-            }));
+            });
+
+            nextMessageQueueTask.Start();
 
             Task.Factory.StartNew(() =>{
                                            try
@@ -205,11 +203,11 @@ namespace Sms.RoutingService
         {
             this.stop = true;
 
-            if (sendQueue != null)
-                sendQueue.Dispose();
+            if (sendQueueTask != null)
+                sendQueueTask.Dispose();
 
-            if (nextMessageQueue != null)
-                nextMessageQueue.Dispose();
+            if (nextMessageQueueTask != null)
+                nextMessageQueueTask.Dispose();
         }
     }
 
@@ -235,7 +233,7 @@ namespace Sms.RoutingService
 
             if (message != null)
             {
-                ToQueue.Send(message);
+                ToQueue.Send(message.Item);
                 message.Success();
                 IsActive = false;
                 return true;

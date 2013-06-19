@@ -79,7 +79,7 @@ namespace Sms.Routing
             RecieveQueueName = recieveQueueName;
         }
 
-        public ReceivedMessage Receive(TimeSpan? timeout = null)
+        public Result<SmsMessage> Receive(TimeSpan? timeout = null)
         {
             SendNextMessage.Send(new SmsMessage(ServiceName, RecieveQueueName, new Dictionary<string, string>()
                 {

@@ -20,26 +20,21 @@ namespace Sms.Msmq.Test
             sender.Send(new SmsMessage("http://test.sta1.com", "hello world"));
             sender.Send(new SmsMessage("http://test.sta1.com", "hello world"));
 
-            var recever = new Reciever(new MsmqMessageReceiver(queueName));
-
             int i = 0;
 
-            Task t = Task.Factory.StartNew(() => recever.Subscribe(x =>
+            var recever = new RecieveTask<SmsMessage>(new MsmqMessageReceiver(queueName), x =>
                 {
                     i++;
                     x.Success();
-                }));
+                });
+
+            recever.Start();
 
             Thread.Sleep(100);
 
             recever.Stop();
 
-            while (recever.Receiving)
-            {
-                Thread.Sleep(10);
-            }
-
-            t.Dispose();
+            recever.Dispose();
 
             Assert.That(i, Is.EqualTo(3));
         }
@@ -61,42 +56,30 @@ namespace Sms.Msmq.Test
 
             stopwatch.Stop();
             Console.WriteLine("Send took: " + stopwatch.ElapsedMilliseconds + "ms");
-            var recever = new Reciever(new MsmqMessageReceiver(queueName));
 
             int i = 0;
-
-            Task t = Task.Factory.StartNew(() => recever.Subscribe(x =>
+             var receiver = new RecieveTask<SmsMessage>(new MsmqMessageReceiver(queueName), x =>
             {
                 throw new ArgumentException("DIE");
-            }));
+            });
+
+            receiver.Start();
 
             Thread.Sleep(100);
 
-            recever.Stop();
+            receiver.Dispose();
 
-            while (recever.Receiving)
-            {
-                Thread.Sleep(10);
-            }
-
-            t.Dispose();
-
-            t = Task.Factory.StartNew(() => recever.Subscribe(x =>
-            {
+            receiver = new RecieveTask<SmsMessage>(new MsmqMessageReceiver(queueName), x =>
+             {
                 i++;
                 x.Success();
-            }));
+            });
+
+            receiver.Start();
 
             Thread.Sleep(10);
 
-            recever.Stop();
-
-            while (recever.Receiving)
-            {
-                Thread.Sleep(10);
-            }
-
-            t.Dispose();
+            receiver.Dispose();
 
             Assert.That(i, Is.EqualTo(1));
 
@@ -111,15 +94,16 @@ namespace Sms.Msmq.Test
             var queueName =  Guid.NewGuid().ToString();
             var sender = new MsmqMessageSender(queueName);
 
-            var recever = new Reciever(new MsmqMessageReceiver(queueName));
-
             int i = 0;
 
-            Task t = Task.Factory.StartNew(() => recever.Subscribe(x =>
-            {
+            var receiver = new RecieveTask<SmsMessage>(new MsmqMessageReceiver(queueName), x =>
+           {
                 i++;
                 x.Success();
-            }));
+            });
+
+            receiver.Start();
+           
 
             Thread.Sleep(10000);
 
@@ -127,17 +111,9 @@ namespace Sms.Msmq.Test
 
             Thread.Sleep(1000);
 
-            recever.Stop();
-
-            while (recever.Receiving)
-            {
-                Thread.Sleep(10);
-            }
-
-            t.Dispose();
+            receiver.Dispose();
 
             Assert.That(i, Is.EqualTo(1));
-
 
         }
 
