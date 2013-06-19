@@ -128,5 +128,99 @@ namespace Sms.RoutingServiceTest
                 Assert.That(receivedCount, Is.EqualTo(1));
         }
 
+
+        [Test]
+        public void should_put_unknown_messages_on_error_queue()
+        {
+            var reciever = new Reciever(SmsFactory.Receiver("msmq", RouterSettings.SendErrorQueueName));
+
+
+            int receivedCount = 0;
+            Task.Factory.StartNew(() => reciever.Subscribe(message =>
+            {
+                receivedCount++;
+                message.Success();
+            }));
+
+            var router = new RouterService();
+
+            router.Start();
+
+            Thread.Sleep(1000);
+
+            Stopwatch watch = new Stopwatch();
+
+            //warm up
+            Router.Instance.Send("testService", "Test me, hello?");
+
+            Thread.Sleep(1000);
+
+            router.Stop();
+
+            reciever.Dispose();
+
+            Thread.Sleep(1000);
+
+            Assert.That(receivedCount, Is.EqualTo(1));
+
+
+
+        }
+
+        [Test]
+        public void should_process_errors_on_startup()
+        {
+            var reciever = new Reciever(SmsFactory.Receiver("msmq", "helloWorldService"));
+
+            int receivedCount = 0;
+            Task.Factory.StartNew(() => reciever.Subscribe(message =>
+            {
+                receivedCount++;
+                message.Success();
+            }));
+
+            var router = new RouterService();
+
+            router.Start();
+
+            Thread.Sleep(1000);
+
+            //warm up
+            Router.Instance.Send("testService", "Test me, hello?");
+
+            Thread.Sleep(1000);
+
+            router.Stop();
+
+            Thread.Sleep(1000);
+
+            Assert.That(receivedCount, Is.EqualTo(0));
+
+
+            router = new RouterService();
+            router.Config.Load(new List<ServiceEndpoint>()
+                {
+                    new ServiceEndpoint()
+                        {
+                            ProviderName = "msmq",
+                            ServiceName = "testService",
+                            QueueIdentifier = "helloWorldService"
+                        }
+                });
+
+            router.Start();
+
+
+            Thread.Sleep(1000);
+
+            router.Stop();
+
+            reciever.Dispose();
+
+            Thread.Sleep(1000);
+
+            Assert.That(receivedCount, Is.EqualTo(1));
+        }
+
     }
 }

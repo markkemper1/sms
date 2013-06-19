@@ -2,9 +2,10 @@
 {
     public static class RouterSettings
     {
-        private const string nextMessageQueueName = "receiveNextMessage";
-        private const string sendMessageQueueName = "sendMessage";
-        private const string serviceNameHeaderKey = "broker.serviceName";
+        private const string nextMessageQueueName = "sms-router-receiveNextMessage";
+        private const string sendMessageQueueName = "sms-router-sendMessage";
+        private const string serviceNameHeaderKey = "sms-router-serviceName";
+        private const string sendErrorQueueName = "sms-router-sendErrors";
 
         public static string ProviderName {
             get
@@ -28,5 +29,9 @@
             get { return Config.Setting("Sms.Router.ServiceNameHeaderKey", serviceNameHeaderKey).Value; }
         }
 
+        public static string SendErrorQueueName
+        {
+            get { return Config.Setting("Sms.Router.SendErrorQueueName", sendErrorQueueName).Value; }
+        }
     }
 }

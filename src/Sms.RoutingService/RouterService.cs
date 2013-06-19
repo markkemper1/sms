@@ -73,6 +73,43 @@ namespace Sms.RoutingService
 
         public void Start()
         {
+
+            //Process Errors
+            using (var errorQueue =
+                    new Reciever(SmsFactory.Receiver(RouterSettings.ProviderName, RouterSettings.SendErrorQueueName)))
+            {
+               
+
+                    var errorErrors = new List<ReceivedMessage>();
+                    var errorSuccess = new List<ReceivedMessage>();
+
+                while (true)
+                {
+                    var error = errorQueue.Receive(TimeSpan.FromMilliseconds(0));
+
+                    if (error == null)
+                        break;
+
+                    if (Config.IsKnown(error.ToAddress))
+                        errorSuccess.Add(error);
+                    else
+                        errorErrors.Add(error);
+                }
+
+                using (var reQueue = SmsFactory.Sender(RouterSettings.ProviderName, RouterSettings.SendQueueName))
+                {
+                    foreach (var e in errorErrors)
+                        e.Failed();
+
+                    foreach (var e in errorSuccess)
+                    {
+                        reQueue.Send(e);
+                        e.Success();
+                    }
+                }
+            }
+
+
             //Listen on the send Queue and forward messages to the configured service.
             sendQueue = new Reciever(SmsFactory.Receiver(RouterSettings.ProviderName, RouterSettings.SendQueueName));
 
@@ -80,7 +117,7 @@ namespace Sms.RoutingService
                 {
                     try
                     {
-                        var configInfo = Config.Get(message.ToAddress);
+                        var configInfo = Config.IsKnown(message.ToAddress) ?  Config.Get(message.ToAddress) : ErrorConfig;
 
                         using (var sender = SmsFactory.Sender(configInfo.ProviderName, configInfo.QueueIdentifier))
                         {
@@ -146,6 +183,13 @@ namespace Sms.RoutingService
                                            }
             });
         }
+
+        private static readonly ServiceEndpoint ErrorConfig = new ServiceEndpoint()
+            {
+                ProviderName = RouterSettings.ProviderName,
+                ServiceName = "Router",
+                QueueIdentifier = RouterSettings.SendErrorQueueName
+            };
 
         private readonly ConcurrentDictionary<string, PipingMessageReciever> receivers = new ConcurrentDictionary<string, PipingMessageReciever>();
 

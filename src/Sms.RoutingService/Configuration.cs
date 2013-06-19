@@ -21,6 +21,17 @@ namespace Sms.RoutingService
             return services[serviceName];
         }
 
+        public bool IsKnown(string serviceName)
+        {
+            if (services == null)
+                return false;
+
+            if (!services.ContainsKey(serviceName))
+                return false;
+
+            return true;
+        }
+
         public void Load(IEnumerable<ServiceEndpoint> endpoints)
         {
             lock (LockMe)
