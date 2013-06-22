@@ -3,7 +3,7 @@
     public interface IMessagingFactory
     {
         string Name { get; }
-        IMessageSender Sender(string queueName);
+        IMessageSender<SmsMessage> Sender(string queueName);
         IReciever<SmsMessage> Reciever(string url);
     }
 }

@@ -7,11 +7,11 @@ namespace Sms.Routing
     public class Router : IRouter
     {
         private static readonly object lockMe = new object();
-        private IMessageSender SignalNextMessage { get; set; }
+        private IMessageSender<SmsMessage> SignalNextMessage { get; set; }
         private Func<string, IReciever<SmsMessage>> ReceiverFactory { get; set; }
-        private readonly IMessageSender viaBrokerSender;
+        private readonly IMessageSender<SmsMessage> viaBrokerSender;
 
-        public Router(IMessageSender viaBrokerSender, IMessageSender signalNextMessage, Func<string, IReciever<SmsMessage>> receiverFactory)
+        public Router(IMessageSender<SmsMessage> viaBrokerSender, IMessageSender<SmsMessage> signalNextMessage, Func<string, IReciever<SmsMessage>> receiverFactory)
         {
             SignalNextMessage = signalNextMessage;
             ReceiverFactory = receiverFactory;

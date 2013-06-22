@@ -83,8 +83,8 @@ namespace Sms.RoutingService
             //Process Errors
             using (var errorQueue = SmsFactory.Receiver(RouterSettings.ProviderName, RouterSettings.SendErrorQueueName))
             {
-                    var errorErrors = new List<Result<SmsMessage>>();
-                    var errorSuccess = new List<Result<SmsMessage>>();
+                    var errorErrors = new List<Message<SmsMessage>>();
+                    var errorSuccess = new List<Message<SmsMessage>>();
 
                 while (true)
                 {
@@ -215,9 +215,9 @@ namespace Sms.RoutingService
     {
         private readonly TimeSpan timeSpan;
         public IReciever<SmsMessage> Reciever { get; set; }
-        public IMessageSender ToQueue { get; set; }
+        public IMessageSender<SmsMessage> ToQueue { get; set; }
 
-        public PipingMessageReciever(IReciever<SmsMessage> reciever, IMessageSender toQueue, TimeSpan timeSpan)
+        public PipingMessageReciever(IReciever<SmsMessage> reciever, IMessageSender<SmsMessage> toQueue, TimeSpan timeSpan)
         {
             this.timeSpan = timeSpan;
             Reciever = reciever;

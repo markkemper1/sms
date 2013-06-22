@@ -112,11 +112,11 @@ namespace Sms.Routing.Test
             DisposedCount += 1;
         }
 
-        public Result<SmsMessage> Receive(TimeSpan? timeout = null)
+        public Message<SmsMessage> Receive(TimeSpan? timeout = null)
         {
             if (Messages.Count == 0) return null;
             var message = Messages.Peek();
-            return new Result<SmsMessage>(message, b =>
+            return new Message<SmsMessage>(message, b =>
             {
                                                          if (b) Messages.Dequeue();
             });
@@ -125,7 +125,7 @@ namespace Sms.Routing.Test
         public Queue<SmsMessage>  Messages = new Queue<SmsMessage>();
     }
 
-    public class StubSender : IMessageSender
+    public class StubSender : IMessageSender<SmsMessage>
     {
         public int DisposedCount = 0;
 

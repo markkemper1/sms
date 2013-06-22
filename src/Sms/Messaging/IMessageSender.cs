@@ -2,8 +2,8 @@
 
 namespace Sms.Messaging
 {
-    public interface IMessageSender : IDisposable
+    public interface IMessageSender<T> : IDisposable
     {
-        void Send(SmsMessage smsMessage);
+        void Send(T smsMessage);
     }
 }

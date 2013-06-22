@@ -3,7 +3,7 @@ using Sms.Messaging;
 
 namespace Sms.Redis
 {
-    public class RedisMessageSender : IMessageSender
+    public class RedisMessageSender : IMessageSender<SmsMessage>
     {
         private readonly RedisNativeClient client;
 

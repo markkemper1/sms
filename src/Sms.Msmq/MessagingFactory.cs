@@ -9,7 +9,7 @@ namespace Sms.Msmq
 
         public string Name { get { return ProviderName; } }
 
-        public IMessageSender Sender(string queueName)
+        public IMessageSender<SmsMessage> Sender(string queueName)
         {
             return new MsmqMessageSender(queueName);
         }

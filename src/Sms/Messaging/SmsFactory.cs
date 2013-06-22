@@ -1,22 +1,19 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using Sms.Internals;
 
 namespace Sms.Messaging
 {
     public class SmsFactory
     {
- 
-
-        //private readonly Dictionary<Type, ServiceEndpointAttribute> typeUris = new Dictionary<Type, ServiceEndpointAttribute>();
         private Dictionary<string, IMessagingFactory> factories;
 
         static readonly object LockMe = new object();
 
-        private static readonly SmsFactory instance = new SmsFactory();
-        private static SmsFactory Instance { get { return instance; } }
+        private static readonly SmsFactory Instance = new SmsFactory();
 
-        public static IMessageSender Sender(string provider, string queueName)
+        public static IMessageSender<SmsMessage> Sender(string provider, string queueName)
         {
             return Instance.GetFactory(provider).Sender(queueName);
         }
@@ -25,31 +22,6 @@ namespace Sms.Messaging
         {
             return Instance.GetFactory(provider).Reciever(url);
         }
-
-      
-        //private ServiceEndpointAttribute GetEndPoint(Type type)
-        //{
-        //    if (typeUris.ContainsKey(type))
-        //        return typeUris[type];
-
-        //    lock (LockMe)
-        //    {
-        //        if (typeUris.ContainsKey(type))
-        //            return typeUris[type];
-
-        //        var serviceEndpoint = (ServiceEndpointAttribute)Attribute.GetCustomAttribute(type, typeof(ServiceEndpointAttribute)) 
-        //            ?? GetEndPointDefault(type);
-
-        //        typeUris[type] = serviceEndpoint;
-
-        //        return typeUris[type];
-        //    }
-        //}
-
-        //private ServiceEndpointAttribute GetEndPointDefault(Type type)
-        //{
-        //    return new ServiceEndpointAttribute("broker", type.Name);
-        //}
 
         private IMessagingFactory GetFactory(string scheme)
         {
@@ -68,10 +40,10 @@ namespace Sms.Messaging
             lock (LockMe)
             {
                 if (factories != null) return;
-                factories = GenericFactory.FindAndBuild<IMessagingFactory>().ToDictionary(x=>x.Name, x=>x);
+                factories = GenericFactory.FindAndBuild<IMessagingFactory>().ToDictionary(x => x.Name, x => x);
             }
         }
 
-       
+
     }
 }

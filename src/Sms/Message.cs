@@ -1,13 +1,13 @@
 ﻿using System;
 
-namespace Sms.Messaging
+namespace Sms
 {
-    public class Result<T>
+    public class Message<T>
     {
         private readonly T message;
         private readonly Action<bool> processed;
 
-        public Result(T message, Action<bool> processed) 
+        public Message(T message, Action<bool> processed) 
         {
             this.message = message;
             this.processed = processed;

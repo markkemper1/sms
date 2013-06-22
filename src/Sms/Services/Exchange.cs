@@ -1,122 +1,103 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Linq;
+using Sms.Internals;
 using Sms.Messaging;
 using Sms.Routing;
 
 namespace Sms.Services
 {
-    public class Exchange : IDisposable
+    public class Exchange : IMessageSink, IDisposable
     {
-        private IRouter Router { get; set; }
+        private readonly ServiceDefinitionRegistry registry;
+        private readonly SerializerFactory serializerFactory;
+        private readonly IRouter router;
+        private readonly List<ServiceReceiverTask> tasks = new List<ServiceReceiverTask>(); 
 
-        public Exchange()
-            : this(RouterFactory.Build())
+        public Exchange(IRouter router = null, ServiceDefinitionRegistry register = null, SerializerFactory serializerFactory = null)
         {
-        }
-
-        public Exchange(IRouter router)
-        {
-            Router = router;
+            this.registry = register ?? new ServiceDefinitionRegistry();
+            this.serializerFactory = serializerFactory ?? new SerializerFactory();
+            this.router = router ?? RouterFactory.Build(); ;
         }
 
         public void Send<T>(T request) where T : class, new()
         {
-            var config = GetServiceConfiguration<T>();
+            var config = registry.Get<T>();
 
-            var serializer = GetSeralizer(config.Serializer);
+            var serializer = serializerFactory.Get(config.Serializer);
 
-            Router.Send(config.ServiceName, serializer.Serialize(request));
+            router.Send(config.ServiceName, serializer.Serialize(request));
         }
 
-        public Result<T> ReceiveOne<T>(TimeSpan? timeout = null) where T : class, new()
+      
+        public void Register(Type serviceType, Action<Message<object>> handler)
         {
-            var config = GetServiceConfiguration<T>();
+            var receiver = CreateReceiverTask(serviceType);
+            receiver.Register(serviceType, handler);
+            tasks.Add(receiver);
+        }
 
-            using (var receiver = CreateReciever<T>())
-            {
-                var result = receiver.Receive(timeout);
-                return result;
+        public void Register<T>(Action<Message<T>> handler)
+        {
+            ServiceReciever<T> handlerClass = ServiceReciever<T>.Create(handler);
+
+            var receiver = CreateReceiverTask(handlerClass.MessageItemType);
+            receiver.Register(handlerClass.MessageItemType, handlerClass.Process);
+            tasks.Add(receiver);
+        }
+
+        public void Start()
+        {
+            foreach(var t in tasks)
+                t.Start();
+        }
+
+        public IEnumerable<Exception> Stop()
+        {
+            var exs = new List<Exception>();
+            foreach (var t in tasks)
+            { 
+                var ex = t.Stop();
+                if(ex != null)
+                    exs.Add(ex);
             }
+            return exs;
         }
 
-        public RecieveTask<T> Receiver<T>(Action<Result<T>> action) where T : class, new()
+
+        private ServiceReceiverTask CreateReceiverTask(Type type)
         {
-            return new RecieveTask<T>(this.CreateReciever<T>(), action);
+            var x = CreateReciever(type);
+            return new ServiceReceiverTask(x);
         }
 
-        private IReciever<T> CreateReciever<T>()
+        private ServiceReceiverTask CreateReceiverTask<T>()
         {
-            var config = GetServiceConfiguration<T>();
-            var receiver = Router.Receiver(config.ServiceName);
-             var serializer = GetSeralizer(config.Serializer);
-             return new ServiceReceiver<T>(receiver, serializer);
+            return CreateReceiverTask(typeof (T));
         }
 
-        private Dictionary<string, ISerializer> serializers = new Dictionary<string, ISerializer>();
-
-        private ISerializer GetSeralizer(string serializerName)
+        private TypedMessageReceiver CreateReciever(Type type)
         {
-            if (serializers.Count == 0)
-            {
-                lock (serializers)
-                {
-                    if (serializers.Count == 0)
-                    {
-                        foreach (var item in GenericFactory.FindAndBuild<ISerializer>())
-                        {
-                            serializers.Add(item.Name, item);
-                        }
-                    }
-                }
-            }
+            var config = registry.Get(type);
+            var receiver = router.Receiver(config.ServiceName);
 
-            if (!serializers.ContainsKey(serializerName))
-            {
-                throw new ArgumentException("Not serializer found for the name: " + serializerName);
-            }
+            var serviceReceiver = new TypedMessageReceiver(receiver, registry, serializerFactory);
 
-            return serializers[serializerName];
+            serviceReceiver.Configure(type);
+
+            return serviceReceiver;
         }
 
-        private Dictionary<Type, ServiceDefinition> typeConfigurations = new Dictionary<Type, ServiceDefinition>();
-
-        private ServiceDefinition GetServiceConfiguration<T>()
-        {
-            var type = typeof(T);
-
-            if (!typeConfigurations.ContainsKey(type))
-            {
-                lock (typeConfigurations)
-                {
-                    if (!typeConfigurations.ContainsKey(type))
-                    {
-                        typeConfigurations.Add(type, CreateServiceDefinition(type));
-                    }
-                }
-            }
-            return typeConfigurations[type];
-        }
-
-        private static ServiceDefinition CreateServiceDefinition(Type type)
-        {
-            var attribute = (ServiceDefinitionAttribute)Attribute.GetCustomAttribute(type, typeof(ServiceDefinitionAttribute)) ?? DefaultServiceDefinition(type);
-
-            return new ServiceDefinition()
-                {
-                    Serializer = attribute.Serializer,
-                    ServiceName = attribute.ServiceName
-                };
-        }
-
-        private static ServiceDefinitionAttribute DefaultServiceDefinition(Type type)
-        {
-            return new ServiceDefinitionAttribute(type.Name, "json");
-        }
+        
 
         public void Dispose()
         {
-            if(Router != null)
-                Router.Dispose();
+            if (router != null)
+                router.Dispose();
+
+            foreach(var t in tasks)
+                t.Dispose();
         }
     }
 }

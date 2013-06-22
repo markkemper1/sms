@@ -53,6 +53,8 @@
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="Messaging\TestFactory.cs" />
     <Compile Include="Routing\RouterTest.cs" />
+    <Compile Include="Services\AutoConfigureServiceBaseTest.cs" />
+    <Compile Include="Services\SerivceTaskRecieverTest.cs" />
     <Compile Include="Services\ExchangeTest.cs" />
   </ItemGroup>
   <ItemGroup>
@@ -78,7 +80,9 @@
       <Link>log4net.config</Link>
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
-    <None Include="App.config" />
+    <None Include="App.config">
+      <SubType>Designer</SubType>
+    </None>
     <None Include="packages.config" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />

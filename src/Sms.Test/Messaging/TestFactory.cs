@@ -6,7 +6,7 @@ namespace Sms.Test
     {
         public string Name { get { return "test"; } }
 
-        public IMessageSender Sender(string queueName)
+        public IMessageSender<SmsMessage> Sender(string queueName)
         {
             return null;
         }

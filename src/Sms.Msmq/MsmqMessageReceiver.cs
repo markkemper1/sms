@@ -28,7 +28,7 @@ namespace Sms.Msmq
         }
 
 
-        public Result<SmsMessage> Receive(TimeSpan? timeout = null)
+        public Message<SmsMessage> Receive(TimeSpan? timeout = null)
         {
             var transaction = new MessageQueueTransaction();
 
@@ -60,7 +60,7 @@ namespace Sms.Msmq
                             return recieveHandler;
                         };
 
-                    return new Result<SmsMessage>(message, onRecieve(transaction));
+                    return new Message<SmsMessage>(message, onRecieve(transaction));
                 }
             }
             catch (MessageQueueException ex)

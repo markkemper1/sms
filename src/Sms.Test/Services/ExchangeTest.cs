@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Threading;
 using System.Threading.Tasks;
 using NUnit.Framework;
 using Sms.RoutingService;
@@ -44,12 +45,21 @@ namespace Sms.Services.Test
 
             exchange.Send(new HelloWorldMessage(){ Text = "Hi there. Its " + DateTime.Now.ToString("HH:mm")});
 
-            var message = exchange.ReceiveOne<HelloWorldMessage>(TimeSpan.FromSeconds(5));
+            Message<HelloWorldMessage> message = null;
+            exchange.Register<HelloWorldMessage>(x =>
+                {
+                    message = x;
+                    x.Processed(true);
+                });
+                
+            exchange.Start();
 
-            message.Processed(true);
+            Thread.Sleep(1000);
+
+            exchange.Stop();
 
             Assert.That(message, Is.Not.Null);
-            Console.WriteLine(message.Item.Text);
+            Console.WriteLine(((HelloWorldMessage)message.Item).Text);
 
         }
 

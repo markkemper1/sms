@@ -6,12 +6,12 @@ namespace Sms.Routing
 {
     public class BrokerProxingReciever : IReciever<SmsMessage>
     {
-        private IMessageSender SendNextMessage { get; set; }
+        private IMessageSender<SmsMessage> SendNextMessage { get; set; }
         private IReciever<SmsMessage> Reciever { get; set; }
         private string ServiceName { get; set; }
         private bool outstanding = false;
 
-        public BrokerProxingReciever(IMessageSender sendNextMessage, IReciever<SmsMessage> reciever, string serviceName)
+        public BrokerProxingReciever(IMessageSender<SmsMessage> sendNextMessage, IReciever<SmsMessage> reciever, string serviceName)
         {
             if (sendNextMessage == null) throw new ArgumentNullException("sendNextMessage");
             if (reciever == null) throw new ArgumentNullException("reciever");
@@ -20,7 +20,7 @@ namespace Sms.Routing
             ServiceName = serviceName;
         }
 
-        public Result<SmsMessage> Receive(TimeSpan? timeout = null)
+        public Message<SmsMessage> Receive(TimeSpan? timeout = null)
         {
             if (!outstanding)
             {

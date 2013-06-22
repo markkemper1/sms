@@ -23,26 +23,4 @@ namespace Sms.Messaging
         public string ToAddress { get; set; }
         public string Body { get; private set; }
     }
-
-    public class ReceivedMessage : SmsMessage
-    {
-        private readonly SmsMessage message;
-        private readonly Action<bool> processed;
-
-        public ReceivedMessage(SmsMessage message, Action<bool> processed) : base(message.ToAddress, message.Body, message.Headers)
-        {
-            this.message = message;
-            this.processed = processed;
-        }
-
-        public void Success()
-        {
-            processed(true);
-        }
-
-        public void Failed()
-        {
-            processed(false);
-        }
-    }
 }

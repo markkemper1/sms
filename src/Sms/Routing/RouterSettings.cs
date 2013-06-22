@@ -1,4 +1,6 @@
-﻿namespace Sms.Routing
+﻿using Sms.Internals;
+
+namespace Sms.Routing
 {
     public static class RouterSettings
     {

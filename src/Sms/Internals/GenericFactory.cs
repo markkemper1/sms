@@ -4,7 +4,7 @@ using System.IO;
 using System.Reflection;
 using System.Text;
 
-namespace Sms
+namespace Sms.Internals
 {
     internal static class GenericFactory
     {
@@ -60,7 +60,7 @@ namespace Sms
             }
         }
 
-        private static T Build<T>(Type type) 
+        public static T Build<T>(Type type) 
         {
             if (type == null) throw new ArgumentNullException("type");
 

@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Configuration;
 
-namespace Sms
+namespace Sms.Internals
 {
     internal static class Config
     {
