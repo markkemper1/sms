@@ -40,7 +40,7 @@ namespace Sms.Internals
             {
                 var assembly = Assembly.LoadFile(file.FullName);
 
-                bool isEntry = assembly.FullName == entry.FullName;
+                bool isEntry =entry != null && assembly.FullName == entry.FullName;
 
                 Type[] types = new Type[0];
                 try
