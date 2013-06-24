@@ -29,14 +29,14 @@ namespace Sms.RoutingServiceTest
         {
             int receivedCount = 0;
 
-            var reciever = new RecieveTask<SmsMessage>(SmsFactory.Receiver("msmq", "helloWorldService"), message =>
+            var receive = new ReceiveTask<SmsMessage>(SmsFactory.Receiver("msmq", "helloWorldService"), message =>
                 {
                     receivedCount++;
                     message.Success();
                 });
 
 
-            reciever.Start();
+            receive.Start();
 
             var router = new RouterService();
             router.Config.Load(new List<ServiceEndpoint>()
@@ -70,7 +70,7 @@ namespace Sms.RoutingServiceTest
 
             router.Stop();
 
-            reciever.Dispose();
+            receive.Dispose();
 
             Thread.Sleep(1000);
 
@@ -80,7 +80,7 @@ namespace Sms.RoutingServiceTest
 
 
         [Test]
-        public void should_proxy_recieve_messages()
+        public void should_proxy_receive_messages()
         {
             var sender = SmsFactory.Sender("msmq", "helloWorldService_Sending");
 
@@ -103,24 +103,24 @@ namespace Sms.RoutingServiceTest
 
             router.Start();
 
-            RecieveTask<SmsMessage> reciever = null;
+            ReceiveTask<SmsMessage> receiver = null;
             Thread.Sleep(1000);
 
 
-            reciever = new RecieveTask<SmsMessage>(Router.Instance.Receiver("testService_send"), message =>
+            receiver = new ReceiveTask<SmsMessage>(Router.Instance.Receiver("testService_send"), message =>
                  {
                      receivedCount++;
                      Console.WriteLine(message.Item.Body);
                      message.Success();
                  });
 
-            reciever.Start();
+            receiver.Start();
 
             Thread.Sleep(1000);
 
             router.Stop();
 
-            reciever.Dispose();
+            receiver.Dispose();
 
             Thread.Sleep(1000);
 
@@ -132,13 +132,13 @@ namespace Sms.RoutingServiceTest
         public void should_put_unknown_messages_on_error_queue()
         {
             int receivedCount = 0;
-            var reciever = new RecieveTask<SmsMessage>(SmsFactory.Receiver("msmq", RouterSettings.SendErrorQueueName), message =>
+            var receiver = new ReceiveTask<SmsMessage>(SmsFactory.Receiver("msmq", RouterSettings.SendErrorQueueName), message =>
             {
                 receivedCount++;
                 message.Success();
             });
 
-            reciever.Start();
+            receiver.Start();
 
             var router = new RouterService();
 
@@ -155,7 +155,7 @@ namespace Sms.RoutingServiceTest
 
             router.Stop();
 
-            reciever.Dispose();
+            receiver.Dispose();
 
             Thread.Sleep(1000);
 
@@ -170,13 +170,13 @@ namespace Sms.RoutingServiceTest
         {
             int receivedCount = 0;
 
-            var reciever = new RecieveTask<SmsMessage>(SmsFactory.Receiver("msmq", "helloWorldService"), message =>
+            var receiveTask = new ReceiveTask<SmsMessage>(SmsFactory.Receiver("msmq", "helloWorldService"), message =>
             {
                 receivedCount++;
                 message.Success();
             });
 
-            reciever.Start();
+            receiveTask.Start();
 
             var router = new RouterService();
 
@@ -214,7 +214,7 @@ namespace Sms.RoutingServiceTest
 
             router.Stop();
 
-            reciever.Dispose();
+            receiveTask.Dispose();
 
             Thread.Sleep(1000);
 

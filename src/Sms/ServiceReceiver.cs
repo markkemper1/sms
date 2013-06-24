@@ -3,7 +3,7 @@ using Sms.Services;
 
 namespace Sms
 {
-    public abstract class ServiceReciever<T> : IServiceReciever
+    public abstract class ServiceReceiver<T> : IServiceReceiver
     {
         public abstract void Process(Message<T> message);
 
@@ -16,16 +16,16 @@ namespace Sms
             Process(new Message<T>((T)message.Item, message.Processed));
         }
 
-        public static ServiceReciever<T> Create(Action<Message<T>> hander)
+        public static ServiceReceiver<T> Create(Action<Message<T>> hander)
         {
-            return new GenericServiceReciever(hander);
+            return new GenericServiceReceiver(hander);
         }
 
-        internal class GenericServiceReciever : ServiceReciever<T>
+        internal class GenericServiceReceiver : ServiceReceiver<T>
         {
             private readonly Action<Message<T>> hander;
 
-            public GenericServiceReciever(Action<Message<T>> hander)
+            public GenericServiceReceiver(Action<Message<T>> hander)
             {
                 this.hander = hander;
             }

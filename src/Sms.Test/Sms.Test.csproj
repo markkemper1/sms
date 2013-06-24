@@ -54,7 +54,7 @@
     <Compile Include="Messaging\TestFactory.cs" />
     <Compile Include="Routing\RouterTest.cs" />
     <Compile Include="Services\AutoConfigureServiceBaseTest.cs" />
-    <Compile Include="Services\SerivceTaskRecieverTest.cs" />
+    <Compile Include="Services\SerivceTaskReceiverTest.cs" />
     <Compile Include="Services\ExchangeTest.cs" />
   </ItemGroup>
   <ItemGroup>

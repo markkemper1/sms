@@ -65,7 +65,7 @@ namespace Sms.Test.Services
             public string Text { get; set; }
         }
 
-        public class TestServiceReciever : ServiceReciever<HelloWorldAuto>
+        public class TestServiceReceiver : ServiceReceiver<HelloWorldAuto>
         {
             public override void Process(Message<HelloWorldAuto> message)
             {

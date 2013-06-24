@@ -2,7 +2,7 @@
 
 namespace Sms.Messaging
 {
-    public interface IReciever<T> : IDisposable
+    public interface IReceiver<T> : IDisposable
     {
         /// <summary>
         ///     Blocks until a single message is returned

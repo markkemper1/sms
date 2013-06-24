@@ -5,17 +5,17 @@ using Sms.Routing;
 
 namespace Sms.Services
 {
-    public class TypedMessageReceiver : IReciever<object>
+    public class TypedMessageReceiver : IReceiver<object>
     {
-        private IReciever<SmsMessage> reciever;
+        private IReceiver<SmsMessage> receiver;
         private readonly ServiceDefinitionRegistry registry;
         private Dictionary<string, Type> serviceTypes = new Dictionary<string, Type>();
         private Dictionary<string, ISerializer> serviceSerializers = new Dictionary<string, ISerializer>();
         private readonly SerializerFactory serializerFactory;
 
-        public TypedMessageReceiver(IReciever<SmsMessage> reciever, ServiceDefinitionRegistry registry, SerializerFactory serializerFactory)
+        public TypedMessageReceiver(IReceiver<SmsMessage> receiver, ServiceDefinitionRegistry registry, SerializerFactory serializerFactory)
         {
-            this.reciever = reciever;
+            this.receiver = receiver;
             this.registry = registry;
             this.serializerFactory = serializerFactory;
         }
@@ -35,7 +35,7 @@ namespace Sms.Services
 
         public Message<object> Receive(TimeSpan? timeout = null)
         {
-            var smsResult = reciever.Receive(timeout);
+            var smsResult = receiver.Receive(timeout);
 
             if (smsResult == null)
                 return null;
@@ -58,7 +58,7 @@ namespace Sms.Services
 
         public void Dispose()
         {
-            reciever.Dispose();
+            receiver.Dispose();
         }
     }
 }

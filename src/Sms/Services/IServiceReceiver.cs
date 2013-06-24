@@ -2,7 +2,7 @@
 
 namespace Sms.Services
 {
-    public interface IServiceReciever
+    public interface IServiceReceiver
     {
         Type MessageItemType { get; }
 

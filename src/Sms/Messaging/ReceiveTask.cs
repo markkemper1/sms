@@ -4,17 +4,17 @@ using System.Threading.Tasks;
 
 namespace Sms.Messaging
 {
-    public class RecieveTask<T> : IDisposable
+    public class ReceiveTask<T> : IDisposable
     {
         private Action<Message<T>> Action { get; set; }
-        private readonly IReciever<T> reciever;
+        private readonly IReceiver<T> receiver;
         private bool stopping;
         private Task task;
 
-        public RecieveTask(IReciever<T> reciever, Action<Message<T>> action)
+        public ReceiveTask(IReceiver<T> receiver, Action<Message<T>> action)
         {
             Action = action;
-            this.reciever = reciever;
+            this.receiver = receiver;
         }
 
         private bool Receiving { get; set; }
@@ -22,7 +22,7 @@ namespace Sms.Messaging
         public void Dispose()
         {
             this.Stop();
-            reciever.Dispose();
+            receiver.Dispose();
         }
 
         public void Start()
@@ -39,7 +39,7 @@ namespace Sms.Messaging
                     {
                         while (!stopping)
                         {
-                            var message = reciever.Receive(TimeSpan.FromMilliseconds(500));
+                            var message = receiver.Receive(TimeSpan.FromMilliseconds(500));
 
                             if (stopping)
                                 break;

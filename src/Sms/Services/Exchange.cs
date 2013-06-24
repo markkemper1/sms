@@ -54,7 +54,7 @@ namespace Sms.Services
 
         public void Register<T>(Action<Message<T>> handler)
         {
-            ServiceReciever<T> handlerClass = ServiceReciever<T>.Create(handler);
+            ServiceReceiver<T> handlerClass = ServiceReceiver<T>.Create(handler);
 
             var receiver = CreateReceiverTask(handlerClass.MessageItemType);
             receiver.Register(handlerClass.MessageItemType, handlerClass.Process);
@@ -82,7 +82,7 @@ namespace Sms.Services
 
         private ServiceReceiverTask CreateReceiverTask(Type type)
         {
-            var x = CreateReciever(type);
+            var x = CreateReceiver(type);
             return new ServiceReceiverTask(x);
         }
 
@@ -91,7 +91,7 @@ namespace Sms.Services
             return CreateReceiverTask(typeof (T));
         }
 
-        private TypedMessageReceiver CreateReciever(Type type)
+        private TypedMessageReceiver CreateReceiver(Type type)
         {
             var config = registry.Get(type);
             var receiver = router.Receiver(config.ServiceName);

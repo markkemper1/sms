@@ -14,13 +14,13 @@ namespace Sms.Services
                                         let y = x.BaseType
                                         where !x.IsAbstract && !x.IsInterface &&
                                         y != null && y.IsGenericType &&
-                                        y.GetGenericTypeDefinition() == typeof(ServiceReciever<>)
+                                        y.GetGenericTypeDefinition() == typeof(ServiceReceiver<>)
                                         select x);
 
             foreach (var serviceType in allServices)
             {
-                var serviceReciever = (IServiceReciever) Build(serviceType);
-                this.Configure(serviceReciever);
+                var serviceReceiver = (IServiceReceiver) Build(serviceType);
+                this.Configure(serviceReceiver);
             }
         }
 
@@ -32,7 +32,7 @@ namespace Sms.Services
 
             if (constructor == null)
             {
-                throw new InvalidOperationException("The ServiceReciever must have a parameter less constructor or override the Build method.");
+                throw new InvalidOperationException("The ServiceReceiver must have a parameter less constructor or override the Build method.");
             }
 
             return constructor.Invoke(new object[0]);
@@ -43,17 +43,17 @@ namespace Sms.Services
     public abstract class ReceiverServiceBase
     {
         private Exchange exchange;
-        //private RecieveTask<HourlyEvent> task;
+        //private ReceiveTask<HourlyEvent> task;
 
         public ReceiverServiceBase()
         {
             exchange = new Exchange();
         }
 
-        public ReceiverServiceBase Configure(IServiceReciever serviceReciever)
+        public ReceiverServiceBase Configure(IServiceReceiver serviceReceiver)
         {
-            serviceReciever.Sink = exchange;
-            exchange.Register(serviceReciever.MessageItemType, serviceReciever.Process);
+            serviceReceiver.Sink = exchange;
+            exchange.Register(serviceReceiver.MessageItemType, serviceReceiver.Process);
             return this;
         }
 

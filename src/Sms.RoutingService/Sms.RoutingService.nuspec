@@ -10,12 +10,12 @@
         <summary>
           A routing services for sms messages. 
 		  * Reads incoming messages and forwards to another queue based on configuration
-		  * Proxies recieve message requests for services.
+		  * Proxies receive message requests for services.
         </summary>
         <description>
             A routing services for sms messages.
             * Reads incoming messages and forwards to another queue based on configuration
-            * Proxies recieve message requests for services.
+            * Proxies receive message requests for services.
         </description>
         <dependencies>
             <dependency id="Sms" version="0.0.0" />

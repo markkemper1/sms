@@ -4,19 +4,19 @@ using Sms.Messaging;
 
 namespace Sms.Routing
 {
-    public class BrokerProxingReciever : IReciever<SmsMessage>
+    public class BrokerProxingReceiver : IReceiver<SmsMessage>
     {
         private IMessageSender<SmsMessage> SendNextMessage { get; set; }
-        private IReciever<SmsMessage> Reciever { get; set; }
+        private IReceiver<SmsMessage> Receiver { get; set; }
         private string ServiceName { get; set; }
         private bool outstanding = false;
 
-        public BrokerProxingReciever(IMessageSender<SmsMessage> sendNextMessage, IReciever<SmsMessage> reciever, string serviceName)
+        public BrokerProxingReceiver(IMessageSender<SmsMessage> sendNextMessage, IReceiver<SmsMessage> receiver, string serviceName)
         {
             if (sendNextMessage == null) throw new ArgumentNullException("sendNextMessage");
-            if (reciever == null) throw new ArgumentNullException("reciever");
+            if (receiver == null) throw new ArgumentNullException("receiver");
             SendNextMessage = sendNextMessage;
-            Reciever = reciever;
+            Receiver = receiver;
             ServiceName = serviceName;
         }
 
@@ -30,7 +30,7 @@ namespace Sms.Routing
                     }));
             }
 
-            var receivedMessage = Reciever.Receive(timeout);
+            var receivedMessage = Receiver.Receive(timeout);
 
             outstanding = receivedMessage == null;
 
@@ -39,7 +39,7 @@ namespace Sms.Routing
 
         public void Dispose()
         {
-            Reciever.Dispose();
+            Receiver.Dispose();
         }
     }
 }

@@ -8,10 +8,10 @@ namespace Sms.Routing
     {
         private static readonly object lockMe = new object();
         private IMessageSender<SmsMessage> SignalNextMessage { get; set; }
-        private Func<string, IReciever<SmsMessage>> ReceiverFactory { get; set; }
+        private Func<string, IReceiver<SmsMessage>> ReceiverFactory { get; set; }
         private readonly IMessageSender<SmsMessage> viaBrokerSender;
 
-        public Router(IMessageSender<SmsMessage> viaBrokerSender, IMessageSender<SmsMessage> signalNextMessage, Func<string, IReciever<SmsMessage>> receiverFactory)
+        public Router(IMessageSender<SmsMessage> viaBrokerSender, IMessageSender<SmsMessage> signalNextMessage, Func<string, IReceiver<SmsMessage>> receiverFactory)
         {
             SignalNextMessage = signalNextMessage;
             ReceiverFactory = receiverFactory;
@@ -25,11 +25,11 @@ namespace Sms.Routing
             viaBrokerSender.Send(new SmsMessage(serviceName, message, headers));
         }
 
-        public IReciever<SmsMessage> Receiver(string serviceName)
+        public IReceiver<SmsMessage> Receiver(string serviceName)
         {
             var receiver = ReceiverFactory(serviceName);
 
-            var proxy = new BrokerProxingReciever(SignalNextMessage, receiver, serviceName);
+            var proxy = new BrokerProxingReceiver(SignalNextMessage, receiver, serviceName);
 
             return proxy;
         }

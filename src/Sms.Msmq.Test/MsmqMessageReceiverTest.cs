@@ -22,7 +22,7 @@ namespace Sms.Msmq.Test
 
             int i = 0;
 
-            var recever = new RecieveTask<SmsMessage>(new MsmqMessageReceiver(queueName), x =>
+            var recever = new ReceiveTask<SmsMessage>(new MsmqMessageReceiver(queueName), x =>
                 {
                     i++;
                     x.Success();
@@ -58,7 +58,7 @@ namespace Sms.Msmq.Test
             Console.WriteLine("Send took: " + stopwatch.ElapsedMilliseconds + "ms");
 
             int i = 0;
-             var receiver = new RecieveTask<SmsMessage>(new MsmqMessageReceiver(queueName), x =>
+             var receiver = new ReceiveTask<SmsMessage>(new MsmqMessageReceiver(queueName), x =>
             {
                 throw new ArgumentException("DIE");
             });
@@ -69,7 +69,7 @@ namespace Sms.Msmq.Test
 
             receiver.Dispose();
 
-            receiver = new RecieveTask<SmsMessage>(new MsmqMessageReceiver(queueName), x =>
+            receiver = new ReceiveTask<SmsMessage>(new MsmqMessageReceiver(queueName), x =>
              {
                 i++;
                 x.Success();
@@ -96,7 +96,7 @@ namespace Sms.Msmq.Test
 
             int i = 0;
 
-            var receiver = new RecieveTask<SmsMessage>(new MsmqMessageReceiver(queueName), x =>
+            var receiver = new ReceiveTask<SmsMessage>(new MsmqMessageReceiver(queueName), x =>
            {
                 i++;
                 x.Success();

@@ -16,7 +16,7 @@ namespace Sms.RoutingService
     public class RouterService
     {
         private static readonly ILog log = LogManager.GetLogger(typeof(RouterService));
-        private RecieveTask<SmsMessage> sendQueueTask, nextMessageQueueTask;
+        private ReceiveTask<SmsMessage> sendQueueTask, nextMessageQueueTask;
 
         public RouterService()
         {
@@ -36,7 +36,7 @@ namespace Sms.RoutingService
 
             XmlConfigurator.ConfigureAndWatch(configFile);
 
-            log.Info("RouterService logging setup...");
+            log.Info("RouterService logging setup..");
         }
 
         private void LoadConfiguration()
@@ -114,7 +114,7 @@ namespace Sms.RoutingService
 
 
             //Listen on the send Queue and forward messages to the configured service.
-            sendQueueTask = new RecieveTask<SmsMessage>(SmsFactory.Receiver(RouterSettings.ProviderName, RouterSettings.SendQueueName),
+            sendQueueTask = new ReceiveTask<SmsMessage>(SmsFactory.Receiver(RouterSettings.ProviderName, RouterSettings.SendQueueName),
                                                     message =>
                                                         {
                                                             try
@@ -137,7 +137,7 @@ namespace Sms.RoutingService
             sendQueueTask.Start();
 
             //Listen for the next message queue, Then setup a receive (if needed) and forward onto the unique queue provided..
-            nextMessageQueueTask = new RecieveTask<SmsMessage>(SmsFactory.Receiver(RouterSettings.ProviderName, RouterSettings.NextMessageQueueName), (message) =>
+            nextMessageQueueTask = new ReceiveTask<SmsMessage>(SmsFactory.Receiver(RouterSettings.ProviderName, RouterSettings.NextMessageQueueName), (message) =>
             {
                 try
                 {
@@ -147,10 +147,10 @@ namespace Sms.RoutingService
 
                     if (!receivers.ContainsKey(queueIdentifier))
                     {
-                        var messageReciever = SmsFactory.Receiver(configInfo.ProviderName, configInfo.QueueIdentifier);
+                        var receiver = SmsFactory.Receiver(configInfo.ProviderName, configInfo.QueueIdentifier);
                         var toQueue = SmsFactory.Sender(RouterSettings.ProviderName, queueIdentifier);
 
-                        receivers[queueIdentifier] = new PipingMessageReciever(messageReciever, toQueue, TimeSpan.FromMilliseconds(10));
+                        receivers[queueIdentifier] = new PipingMessageReceiver(receiver, toQueue, TimeSpan.FromMilliseconds(10));
                     }
 
                     receivers[queueIdentifier].IsActive = true;
@@ -195,7 +195,7 @@ namespace Sms.RoutingService
                 QueueIdentifier = RouterSettings.SendErrorQueueName
             };
 
-        private readonly ConcurrentDictionary<string, PipingMessageReciever> receivers = new ConcurrentDictionary<string, PipingMessageReciever>();
+        private readonly ConcurrentDictionary<string, PipingMessageReceiver> receivers = new ConcurrentDictionary<string, PipingMessageReceiver>();
 
         private bool stop;
 
@@ -211,16 +211,16 @@ namespace Sms.RoutingService
         }
     }
 
-    public class PipingMessageReciever : IDisposable
+    public class PipingMessageReceiver : IDisposable
     {
         private readonly TimeSpan timeSpan;
-        public IReciever<SmsMessage> Reciever { get; set; }
+        public IReceiver<SmsMessage> Receiver { get; set; }
         public IMessageSender<SmsMessage> ToQueue { get; set; }
 
-        public PipingMessageReciever(IReciever<SmsMessage> reciever, IMessageSender<SmsMessage> toQueue, TimeSpan timeSpan)
+        public PipingMessageReceiver(IReceiver<SmsMessage> receiver, IMessageSender<SmsMessage> toQueue, TimeSpan timeSpan)
         {
             this.timeSpan = timeSpan;
-            Reciever = reciever;
+            Receiver = receiver;
             ToQueue = toQueue;
         }
         public bool IsActive { get; set; }
@@ -229,7 +229,7 @@ namespace Sms.RoutingService
         {
             if (!IsActive) return false;
 
-            var message = Reciever.Receive(timeSpan);
+            var message = Receiver.Receive(timeSpan);
 
             if (message != null)
             {
@@ -244,7 +244,7 @@ namespace Sms.RoutingService
 
         public void Dispose()
         {
-            Reciever.Dispose();
+            Receiver.Dispose();
             ToQueue.Dispose();
         }
     }

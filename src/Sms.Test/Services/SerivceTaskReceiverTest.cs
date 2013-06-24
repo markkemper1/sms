@@ -9,7 +9,7 @@ using Sms.RoutingService;
 namespace Sms.Services.Test
 {
     [TestFixture]
-    public class SerivceTaskRecieverTest
+    public class SerivceTaskReceiverTest
     {
         RouterService router;
 

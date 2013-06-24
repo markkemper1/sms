@@ -7,13 +7,13 @@ namespace Sms.Services
     public class ServiceReceiverTask : IDisposable
     {
         private TypedMessageReceiver receiver;
-        private RecieveTask<object> task;
+        private ReceiveTask<object> task;
         GenericMessageHandler handler = new GenericMessageHandler();
 
         public ServiceReceiverTask(TypedMessageReceiver receiver)
         {
             this.receiver = receiver;
-            this.task = new RecieveTask<object>(receiver, HandleMessage);
+            this.task = new ReceiveTask<object>(receiver, HandleMessage);
         }
 
         public void Register(Type serviceType, Action<Message<object>> action)

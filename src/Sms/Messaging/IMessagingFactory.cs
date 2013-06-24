@@ -4,6 +4,6 @@
     {
         string Name { get; }
         IMessageSender<SmsMessage> Sender(string queueName);
-        IReciever<SmsMessage> Reciever(string url);
+        IReceiver<SmsMessage> Receiver(string url);
     }
 }

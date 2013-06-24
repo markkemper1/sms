@@ -51,10 +51,10 @@ namespace Sms.Routing.Test
         {
             var target = new Router(Sender, NextMessage, Factory);
 
-            var reciever = target.Receiver("test");
+            var receiver = target.Receiver("test");
 
 
-            reciever.ShouldNotBe(null);
+            receiver.ShouldNotBe(null);
         }
 
         [Test]
@@ -62,14 +62,14 @@ namespace Sms.Routing.Test
         {
             var target = new Router(Sender, NextMessage, Factory);
 
-            var reciever = target.Receiver("test");
-            var message = reciever.Receive();
+            var receiver = target.Receiver("test");
+            var message = receiver.Receive();
 
             NextMessage.Sent.Count.ShouldBe(1);
             NextMessage.Sent[0].ToAddress.ShouldBe("test");
 
 
-            reciever.ShouldBeTypeOf<BrokerProxingReciever>();
+            receiver.ShouldBeTypeOf<BrokerProxingReceiver>();
 
             NextMessage.Sent[0].Headers.First().Value.ShouldBe("test");
         }
@@ -79,16 +79,16 @@ namespace Sms.Routing.Test
         {
             var target = new Router(Sender, NextMessage, Factory);
 
-            var reciever = target.Receiver("test");
+            var receiver = target.Receiver("test");
 
-            var message1 = reciever.Receive();
+            var message1 = receiver.Receive();
 
             NextMessage.Sent.Count.ShouldBe(1);
             NextMessage.Sent[0].ToAddress.ShouldBe("test");
             message1.ShouldBe(null);
 
             Receiver.Messages.Enqueue(new SmsMessage("test", "xx"));
-            var message2 = reciever.Receive();
+            var message2 = receiver.Receive();
 
             NextMessage.Sent.Count.ShouldBe(1);
             NextMessage.Sent[0].ToAddress.ShouldBe("test");
@@ -96,14 +96,14 @@ namespace Sms.Routing.Test
 
         }
 
-        private IReciever<SmsMessage> Factory(string queueName)
+        private IReceiver<SmsMessage> Factory(string queueName)
         {
             Receiver = new StubReceiver();
             return Receiver;
         }
     }
 
-    public class StubReceiver : IReciever<SmsMessage>
+    public class StubReceiver : IReceiver<SmsMessage>
     {
         public int DisposedCount = 0;
 

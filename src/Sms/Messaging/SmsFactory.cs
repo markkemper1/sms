@@ -18,9 +18,9 @@ namespace Sms.Messaging
             return Instance.GetFactory(provider).Sender(queueName);
         }
 
-        public static IReciever<SmsMessage> Receiver(string provider, string url)
+        public static IReceiver<SmsMessage> Receiver(string provider, string url)
         {
-            return Instance.GetFactory(provider).Reciever(url);
+            return Instance.GetFactory(provider).Receiver(url);
         }
 
         private IMessagingFactory GetFactory(string scheme)

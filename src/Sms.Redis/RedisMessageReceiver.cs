@@ -4,11 +4,11 @@
 
 //namespace Sms.Redis
 //{
-//    public class RedisMessageReciever : IMessageReciever
+//    public class RedisMessageReceiver : IMessageReceiver
 //    {
 //        private readonly RedisClient client;
 
-//        public RedisMessageReciever(string host, int port, string password, int db)
+//        public RedisMessageReceiver(string host, int port, string password, int db)
 //        {
 //            client = new RedisClient(host, port, password, db);
 //        }

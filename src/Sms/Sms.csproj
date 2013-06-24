@@ -44,12 +44,12 @@
     <Compile Include="Services\IMessageSink.cs" />
     <Compile Include="Internals\Config.cs" />
     <Compile Include="Internals\GenericFactory.cs" />
-    <Compile Include="ServiceReciever.cs" />
-    <Compile Include="Services\IServiceReciever.cs" />
+    <Compile Include="ServiceReceiver.cs" />
+    <Compile Include="Services\IServiceReceiver.cs" />
     <Compile Include="Messaging\IMessagingFactory.cs" />
     <Compile Include="Messaging\IMessageReciever.cs" />
     <Compile Include="Messaging\IMessageSender.cs" />
-    <Compile Include="Messaging\RecieveTask.cs" />
+    <Compile Include="Messaging\ReceiveTask.cs" />
     <Compile Include="Message.cs" />
     <Compile Include="Routing\BrokerProxingReciever.cs" />
     <Compile Include="Routing\IRouter.cs" />

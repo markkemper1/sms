@@ -11,9 +11,9 @@ namespace Sms.Test
             return null;
         }
 
-        public IReciever<SmsMessage> Reciever(string url)
+        public IReceiver<SmsMessage> Receiver(string url)
         {
-            return new TestReciever();
+            return new TestReceiver();
         }
     }
 }

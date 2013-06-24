@@ -4,7 +4,7 @@ using Sms.Messaging;
 
 namespace Sms.Msmq
 {
-    public class MsmqMessageReceiver : IReciever<SmsMessage>, IDisposable
+    public class MsmqMessageReceiver : IReceiver<SmsMessage>, IDisposable
     {
         readonly MessageQueue messageQueue = null;
         //private bool stopping;
@@ -46,9 +46,9 @@ namespace Sms.Msmq
 
                     var message = ((SmsMessageContent)raw.Body).ToMessage();
 
-                    Func<MessageQueueTransaction, Action<bool>> onRecieve = queueTransaction =>
+                    Func<MessageQueueTransaction, Action<bool>> onReceive = queueTransaction =>
                         {
-                            Action<bool> recieveHandler = x =>
+                            Action<bool> handler = x =>
                                 {
                                     if (x)
                                         queueTransaction.Commit();
@@ -57,10 +57,10 @@ namespace Sms.Msmq
 
                                     queueTransaction.Dispose();
                                 };
-                            return recieveHandler;
+                            return handler;
                         };
 
-                    return new Message<SmsMessage>(message, onRecieve(transaction));
+                    return new Message<SmsMessage>(message, onReceive(transaction));
                 }
             }
             catch (MessageQueueException ex)
