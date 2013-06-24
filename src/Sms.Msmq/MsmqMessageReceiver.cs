@@ -19,7 +19,7 @@ namespace Sms.Msmq
             EnsureQueueExists.OfName(this.queueName);
 
             messageQueue = new MessageQueue(this.queueName);
-            messageQueue.Formatter = new XmlMessageFormatter(new Type[1] { typeof(MsmqMessage) });
+            messageQueue.Formatter = new XmlMessageFormatter(new Type[1] { typeof(SmsMessageContent) });
         }
 
         public void Dispose()
@@ -44,7 +44,7 @@ namespace Sms.Msmq
 
 
 
-                    var message = ((MsmqMessage) raw.Body).ToMessage();
+                    var message = ((SmsMessageContent)raw.Body).ToMessage();
 
                     Func<MessageQueueTransaction, Action<bool>> onRecieve = queueTransaction =>
                         {

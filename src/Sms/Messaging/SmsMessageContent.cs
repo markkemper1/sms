@@ -1,27 +1,22 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.IO;
 using System.Linq;
-using Sms.Messaging;
 
-namespace Sms.Msmq
+namespace Sms.Messaging
 {
     [Serializable]
-    public class MsmqMessage
+    public class SmsMessageContent
     {
-        public static MsmqMessage Create(SmsMessage m)
+        public static SmsMessageContent Create(SmsMessage m)
         {
-            return new MsmqMessage()
-                {
-                    Body = m.Body,
-                    Id = m.Id,
-                    To = m.ToAddress,
-                    HeaderKeys = m.Headers.Keys.ToArray(),
-                    HeaderValues = m.Headers.Values.ToArray()
-                };
+            return new SmsMessageContent()
+            {
+                Body = m.Body,
+                To = m.ToAddress,
+                HeaderKeys = m.Headers.Keys.ToArray(),
+                HeaderValues = m.Headers.Values.ToArray()
+            };
         }
-
-        public string Id { get; set; }
 
         public string To { get; set; }
 
@@ -29,10 +24,12 @@ namespace Sms.Msmq
 
         public string[] HeaderValues { get; set; }
 
-        public string Body { get;  set; }
+        public string Body { get; set; }
 
         public SmsMessage ToMessage()
         {
+            if (String.IsNullOrWhiteSpace(To)) throw new InvalidOperationException("Cannot create SmsMessage with null or empty To property");
+
             var dictionary = new Dictionary<string, string>();
 
             for (int i = 0; i < HeaderKeys.Length; i++)
@@ -42,6 +39,4 @@ namespace Sms.Msmq
             return new SmsMessage(To, Body, dictionary);
         }
     }
-
-
 }

@@ -46,7 +46,6 @@
     <Compile Include="EnsureQueueExists.cs" />
     <Compile Include="MessagingFactory.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
-    <Compile Include="MsmqMessage.cs" />
     <Compile Include="MsmqMessageReceiver.cs" />
     <Compile Include="MsmqMessageSender.cs" />
   </ItemGroup>

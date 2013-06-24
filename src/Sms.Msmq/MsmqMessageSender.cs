@@ -29,7 +29,7 @@ namespace Sms.Msmq
 
         public void Send(SmsMessage smsMessage)
         {
-            var m = MsmqMessage.Create(smsMessage);
+            var m = SmsMessageContent.Create(smsMessage);
             using (var transaction = new MessageQueueTransaction())
             {
                 transaction.Begin();
