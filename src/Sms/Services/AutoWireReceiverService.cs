@@ -57,12 +57,12 @@ namespace Sms.Services
             return this;
         }
 
-        public void Start()
+        public virtual void Start()
         {
             exchange.Start();
         }
 
-        public void Stop()
+        public virtual void Stop()
         {
             if (exchange != null)
             {

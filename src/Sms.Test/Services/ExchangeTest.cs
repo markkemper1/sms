@@ -4,8 +4,9 @@ using System.Threading;
 using System.Threading.Tasks;
 using NUnit.Framework;
 using Sms.RoutingService;
+using Sms.Services;
 
-namespace Sms.Services.Test
+namespace Sms.Test.Services
 {
     [TestFixture]
     public class ExchangeTest
@@ -25,7 +26,6 @@ namespace Sms.Services.Test
         {
             service.Stop();
         }
-
 
         [Test]
         public void receive_be_able_to_send_and_receive()
@@ -62,6 +62,8 @@ namespace Sms.Services.Test
             Console.WriteLine(((HelloWorldMessage)message.Item).Text);
 
         }
+
+
 
         public class HelloWorldMessage
         {
