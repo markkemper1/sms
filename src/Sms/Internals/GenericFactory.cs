@@ -18,16 +18,31 @@ namespace Sms.Internals
             }
         }
 
+        private static DirectoryInfo GetBinPath()
+        {
+            var path = AppDomain.CurrentDomain.BaseDirectory;
+
+            bool isWeb = String.Compare(Path.GetFileName(AppDomain.CurrentDomain.SetupInformation.ConfigurationFile), "web.config", StringComparison.OrdinalIgnoreCase) == 0;
+
+            if (isWeb)  path = Path.Combine(path, "bin");
+            return new DirectoryInfo(path);
+        }
+
         private static IEnumerable<Type> Find<T>()
         {
-            var dir = new DirectoryInfo(AppDomain.CurrentDomain.BaseDirectory);
+            var dir = GetBinPath();
             
             Type factoryType = typeof(T);
+
+            Assembly entry = Assembly.GetEntryAssembly();
 
             foreach (var file in dir.EnumerateFiles("*.dll"))
             {
                 var assembly = Assembly.LoadFile(file.FullName);
-                Type[] types;
+
+                bool isEntry = assembly.FullName == entry.FullName;
+
+                Type[] types = new Type[0];
                 try
                 {
                     types = assembly.GetTypes();
@@ -49,7 +64,13 @@ namespace Sms.Internals
                         }
                         sb.AppendLine();
                     }
-                    throw new ApplicationException(sb.ToString(), ex);
+                    if (isEntry)
+                        throw new ApplicationException(sb.ToString(), ex);
+                    else
+                    {
+                        System.Diagnostics.Trace.WriteLine(sb.ToString());
+                        System.Diagnostics.Trace.WriteLine(ex.ToString());
+                    }
                     //Display or log the error based on your application.
                 }
                 foreach (var t in types)
