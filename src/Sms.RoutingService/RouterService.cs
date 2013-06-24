@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using System.Collections.Specialized;
 using System.Configuration;
 using System.IO;
+using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Sms.Messaging;
@@ -17,6 +18,7 @@ namespace Sms.RoutingService
     {
         private static readonly ILog log = LogManager.GetLogger(typeof(RouterService));
         private ReceiveTask<SmsMessage> sendQueueTask, nextMessageQueueTask;
+        private Task pipeMessages ;
 
         public RouterService()
         {
@@ -166,7 +168,7 @@ namespace Sms.RoutingService
 
             nextMessageQueueTask.Start();
 
-            Task.Factory.StartNew(() =>{
+            pipeMessages = Task.Factory.StartNew(() =>{
                                            try
                                            {
                                                while (!stop)
@@ -186,6 +188,14 @@ namespace Sms.RoutingService
                                                throw;
                                            }
             });
+
+            Thread.Sleep(2000);
+
+            if (pipeMessages.Status != TaskStatus.Running || nextMessageQueueTask.Status != TaskStatus.Running || sendQueueTask.Status != TaskStatus.Running)
+            {
+                var exception = this.Stop();
+                throw new Exception("Failed to start successfully" , exception);
+            }
         }
 
         private static readonly ServiceEndpoint ErrorConfig = new ServiceEndpoint()
@@ -199,15 +209,44 @@ namespace Sms.RoutingService
 
         private bool stop;
 
-        public void Stop()
+        public Exception Stop()
         {
             this.stop = true;
 
+            Exception ex = null;
+            var exceptions = new List<Exception>();
+
             if (sendQueueTask != null)
+            {
+                ex = sendQueueTask.Stop();
                 sendQueueTask.Dispose();
+            }
+
+            if(ex != null)
+                exceptions.Add(ex);
+
+            ex = null;
 
             if (nextMessageQueueTask != null)
+            {
+                ex = nextMessageQueueTask.Stop();
                 nextMessageQueueTask.Dispose();
+            }
+
+            if (ex != null)
+                exceptions.Add(ex);
+
+            ex = null;
+
+            try
+            {
+                Task.WaitAll(pipeMessages);
+            }
+            catch (AggregateException ae)
+            {
+                exceptions.Add(ae);
+            }
+            return new AggregateException(exceptions);
         }
     }
 

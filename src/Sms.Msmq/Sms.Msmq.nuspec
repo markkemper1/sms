@@ -14,7 +14,7 @@
             A windows msmq implementation of a sms message sender and receiver.
         </description>
         <dependencies>
-            <dependency id="Sms" version="0.0.0" />
+            <dependency id="Sms" version="0.0.1.4" />
         </dependencies>
     </metadata>
 </package>

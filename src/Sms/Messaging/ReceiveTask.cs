@@ -19,6 +19,11 @@ namespace Sms.Messaging
 
         private bool Receiving { get; set; }
 
+        public TaskStatus Status    
+        {
+            get { return task.Status; }
+        }
+
         public void Dispose()
         {
             this.Stop();
@@ -29,7 +34,7 @@ namespace Sms.Messaging
         {
             if (task != null)
                 return;
-
+            
             Receiving = true;
             stopping = false;
 
