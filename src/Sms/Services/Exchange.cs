@@ -30,7 +30,21 @@ namespace Sms.Services
             router.Send(config.ServiceName, serializer.Serialize(request));
         }
 
-      
+
+        public void Send(SmsMessage message)
+        {
+            router.Send(message.ToAddress, message.Body);
+        }
+
+        public SmsMessage ToMessage<T>(T request) where T : class, new()
+        {
+            var config = registry.Get<T>();
+
+            var serializer = serializerFactory.Get(config.Serializer);
+
+            return new SmsMessage(config.ServiceName, serializer.Serialize(request));
+        }
+
         public void Register(Type serviceType, Action<Message<object>> handler)
         {
             var receiver = CreateReceiverTask(serviceType);
