@@ -18,12 +18,11 @@ namespace Sms.Routing
             this.viaBrokerSender = viaBrokerSender;
         }
 
-        public void Send(string serviceName, string message)
+        public void Send(string serviceName, string message, IDictionary<string,string> headers = null )
         {
-            viaBrokerSender.Send(new SmsMessage(serviceName, message, new Dictionary<string, string>
-                {
-                    {RouterSettings.ServiceNameHeaderKey,serviceName}
-                }));
+            headers = headers ?? new Dictionary<string, string>();
+            headers[RouterSettings.ServiceNameHeaderKey] = serviceName;
+            viaBrokerSender.Send(new SmsMessage(serviceName, message, headers));
         }
 
         public IReciever<SmsMessage> Receiver(string serviceName)

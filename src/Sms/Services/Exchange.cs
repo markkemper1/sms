@@ -33,7 +33,7 @@ namespace Sms.Services
 
         public void Send(SmsMessage message)
         {
-            router.Send(message.ToAddress, message.Body);
+            router.Send(message.ToAddress, message.Body, message.Headers);
         }
 
         public SmsMessage ToMessage<T>(T request) where T : class, new()
