@@ -14,7 +14,10 @@
             Service stack serializers for sms. Includes XML and JSON.
         </description>
         <dependencies>
-            <dependency id="Sms" version="0.0.1.4" />
+            <dependency id="Sms" version="0.0.2.0" />
         </dependencies>
     </metadata>
+    <files>
+        <file src="bin\Release\*.pdb" target="lib\net45\" />
+    </files>
 </package>
