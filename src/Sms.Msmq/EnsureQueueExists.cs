@@ -17,7 +17,12 @@ namespace Sms.Msmq
                 if (MessageQueue.Exists(queueName))
                     return;
 
-                MessageQueue.Create(queueName, true);
+                var queue = MessageQueue.Create(queueName, true);
+
+                var user = Config.Setting("Sms.Msmq.DefaultQueueUser", "Everyone").Value;
+
+                queue.SetPermissions(user, MessageQueueAccessRights.GenericRead, AccessControlEntryType.Allow);
+                queue.SetPermissions(user, MessageQueueAccessRights.GenericWrite, AccessControlEntryType.Allow);
             }
         }
     }
