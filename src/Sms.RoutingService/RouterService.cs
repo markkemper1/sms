@@ -189,18 +189,28 @@ namespace Sms.RoutingService
                                            }
             });
 
-            Thread.Sleep(2000);
+            while (pipeMessages.Status == TaskStatus.WaitingToRun || pipeMessages.Status == TaskStatus.Created || pipeMessages.Status == TaskStatus.WaitingForActivation || 
+                   nextMessageQueueTask.Status == TaskStatus.WaitingToRun || nextMessageQueueTask.Status == TaskStatus.Created || nextMessageQueueTask.Status == TaskStatus.WaitingForActivation || 
+                   sendQueueTask.Status == TaskStatus.WaitingToRun || sendQueueTask.Status == TaskStatus.Created || sendQueueTask.Status == TaskStatus.WaitingForActivation
+            )
+            {
+                var message = String.Format("Something isn't running. 1. pipeMessages:  {0}, nextMessageQueue: {1}, sendQueue: {2} ", pipeMessages.Status.ToString(), nextMessageQueueTask.Status.ToString(), sendQueueTask.Status.ToString());
+                log.Info(message);
+
+                Thread.Sleep(1000);
+            }
+
+
 
             if (pipeMessages.Status != TaskStatus.Running || nextMessageQueueTask.Status != TaskStatus.Running || sendQueueTask.Status != TaskStatus.Running)
             {
+                var message = String.Format("Something isn't running. 1. pipeMessages:  {0}, nextMessageQueue: {1}, sendQueue: {2} ", pipeMessages.Status.ToString(), nextMessageQueueTask.Status.ToString(), sendQueueTask.Status.ToString());
                 var exception = this.Stop();
-                throw new Exception(String.Format("Something isn't running. pipeMessages:  {0}, nextMessageQueue: {1}, sendQueue: {2} ", 
-                    pipeMessages.Status.ToString() ,
-                    nextMessageQueueTask.Status.ToString(),
-                    sendQueueTask.Status.ToString()
-                    ) , exception);
+                throw new Exception(message , exception);
             }
         }
+
+        
 
         private static readonly ServiceEndpoint ErrorConfig = new ServiceEndpoint()
             {
