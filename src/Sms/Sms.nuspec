@@ -27,5 +27,11 @@
             * Routing - Allows services to send messages to named services (so clients dont need to know the protocol, port address username, password etc. of where the actual service is running)
             * Services - Builds on the routing and adds typed messages with serialization support.
         </description>
-    </metadata>
+
+      
+        
+        </metadata>
+    <files>
+        <file src="bin\Release\*.pdb" target="lib\net45\" />
+    </files>
 </package>

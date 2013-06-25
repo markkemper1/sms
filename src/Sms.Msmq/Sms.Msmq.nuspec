@@ -14,7 +14,11 @@
             A windows msmq implementation of a sms message sender and receiver.
         </description>
         <dependencies>
-            <dependency id="Sms" version="0.0.1.4" />
+            <dependency id="Sms" version="0.0.1.5" />
         </dependencies>
     </metadata>
+
+    <files>
+        <file src="bin\Release\*.pdb" target="lib\net45\" />
+    </files>
 </package>

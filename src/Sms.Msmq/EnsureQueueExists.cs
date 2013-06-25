@@ -21,8 +21,7 @@ namespace Sms.Msmq
 
                 var user = Config.Setting("Sms.Msmq.DefaultQueueUser", "Everyone").Value;
 
-                queue.SetPermissions(user, MessageQueueAccessRights.GenericRead, AccessControlEntryType.Allow);
-                queue.SetPermissions(user, MessageQueueAccessRights.GenericWrite, AccessControlEntryType.Allow);
+                queue.SetPermissions(user, MessageQueueAccessRights.FullControl, AccessControlEntryType.Allow);
                 queue.SetPermissions("Administrator", MessageQueueAccessRights.FullControl, AccessControlEntryType.Allow);
             }
         }
