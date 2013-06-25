@@ -39,6 +39,7 @@ namespace Sms.Routing
 
         public void Dispose()
         {
+            SendNextMessage.Dispose();
             Receiver.Dispose();
         }
     }
