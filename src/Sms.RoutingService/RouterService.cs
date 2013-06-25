@@ -194,7 +194,7 @@ namespace Sms.RoutingService
             if (pipeMessages.Status != TaskStatus.Running || nextMessageQueueTask.Status != TaskStatus.Running || sendQueueTask.Status != TaskStatus.Running)
             {
                 var exception = this.Stop();
-                throw new Exception("Failed to start successfully" , exception);
+                throw exception;
             }
         }
 
@@ -219,6 +219,7 @@ namespace Sms.RoutingService
             if (sendQueueTask != null)
             {
                 ex = sendQueueTask.Stop();
+                log.Fatal("Send Queue Ex:", ex);
                 sendQueueTask.Dispose();
             }
 
@@ -230,6 +231,7 @@ namespace Sms.RoutingService
             if (nextMessageQueueTask != null)
             {
                 ex = nextMessageQueueTask.Stop();
+                log.Fatal("Next Message Queue Ex:", ex);
                 nextMessageQueueTask.Dispose();
             }
 
@@ -244,6 +246,7 @@ namespace Sms.RoutingService
             }
             catch (AggregateException ae)
             {
+                log.Fatal("Piping Task:", ex);
                 exceptions.Add(ae);
             }
             return new AggregateException(exceptions);
