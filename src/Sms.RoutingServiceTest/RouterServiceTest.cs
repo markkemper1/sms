@@ -16,7 +16,6 @@ namespace Sms.RoutingServiceTest
     [TestFixture]
     public class RouterServiceTest
     {
-
         [SetUp]
         public void SetUp()
         {
@@ -66,7 +65,7 @@ namespace Sms.RoutingServiceTest
             watch.Stop();
             Console.WriteLine("Send 1000 in : " + watch.ElapsedMilliseconds);
 
-            Thread.Sleep(1000);
+            Thread.Sleep(2000);
 
             router.Stop();
 

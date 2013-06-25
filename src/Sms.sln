@@ -24,6 +24,18 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = ".nuget", ".nuget", "{6776F2
 		.nuget\NuGet.targets = .nuget\NuGet.targets
 	EndProjectSection
 EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "VersionInfo", "VersionInfo", "{B90ABCE9-BB85-4AD4-8FF1-03BC5C5A37E6}"
+	ProjectSection(SolutionItems) = preProject
+		Sms\Properties\AssemblyInfo.cs = Sms\Properties\AssemblyInfo.cs
+		Sms.Msmq\Properties\AssemblyInfo.cs = Sms.Msmq\Properties\AssemblyInfo.cs
+		Sms.RoutingService\Properties\AssemblyInfo.cs = Sms.RoutingService\Properties\AssemblyInfo.cs
+		Sms.ServiceStackSerializers\Properties\AssemblyInfo.cs = Sms.ServiceStackSerializers\Properties\AssemblyInfo.cs
+		Sms.Msmq\Sms.Msmq.nuspec = Sms.Msmq\Sms.Msmq.nuspec
+		Sms\Sms.nuspec = Sms\Sms.nuspec
+		Sms.RoutingService\Sms.RoutingService.nuspec = Sms.RoutingService\Sms.RoutingService.nuspec
+		Sms.ServiceStackSerializers\Sms.ServiceStackSerializers.nuspec = Sms.ServiceStackSerializers\Sms.ServiceStackSerializers.nuspec
+	EndProjectSection
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU

@@ -10,11 +10,11 @@
     <Message Text="Nuget Packing: $(NuGetExePath) pack $(ProjectPath) -Build -OutputDirectory $(TargetDir) "
               Importance="high" />
     
-    <Exec Command="$(NuGetExePath) pack $(ProjectPath) -OutputDirectory $(TargetDir) -Properties Configuration=Release"/>
+    <Exec Command="$(NuGetExePath) pack $(ProjectPath) -OutputDirectory $(TargetDir) -Properties Configuration=Release"  />
 
 
     <ItemGroup>
-      <PackageFile Include=" $(OutDir)$(ProjectName)*.nupkg" />
+      <PackageFile Include=" $(TargetDir)$(ProjectName)*.nupkg" />
     </ItemGroup>
     
     <Message Text="NUGET_REPOSITORY: $(NUGET_REPOSITORY)" Importance="high" />

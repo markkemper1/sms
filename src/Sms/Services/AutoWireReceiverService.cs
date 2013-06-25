@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Linq;
 
 namespace Sms.Services
@@ -40,44 +41,52 @@ namespace Sms.Services
 
     }
 
-    public abstract class ReceiverServiceBase
+    public abstract class ReceiverServiceBase : IDisposable
     {
-        private Exchange exchange;
+        private List<Exchange> exchanges = new List<Exchange>();
         //private ReceiveTask<HourlyEvent> task;
-
-        public ReceiverServiceBase()
-        {
-            exchange = new Exchange();
-        }
 
         public ReceiverServiceBase Configure(IServiceReceiver serviceReceiver)
         {
+            var exchange = new Exchange();
             serviceReceiver.Sink = exchange;
             exchange.Register(serviceReceiver.MessageItemType, serviceReceiver.Process);
+
+            exchanges.Add(exchange);
             return this;
         }
 
         public virtual void Start()
         {
-            exchange.Start();
+            foreach(var ex in exchanges)
+                ex.Start();
         }
 
-        public virtual void Stop()
+        public virtual IList<Exception> Stop()
         {
-            if (exchange != null)
+            var list = new List<Exception>();
+
+            foreach (var exchange in exchanges)
             {
                 var exceptions = exchange.Stop();
 
                 foreach (var ex in exceptions)
+                {
+                    list.Add(ex);
                     Log(ex);
+                }
 
                 exchange.Dispose();
             }
+
+            return list;
         }
 
-        public virtual void Log(Exception ex)
+        public abstract void Log(Exception ex);
+
+        public void Dispose()
         {
-            System.Diagnostics.Trace.WriteLine(ex.ToString());
+            this.Stop();
         }
     }
 }

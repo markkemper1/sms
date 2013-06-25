@@ -28,8 +28,6 @@
             * Services - Builds on the routing and adds typed messages with serialization support.
         </description>
 
-      
-        
         </metadata>
     <files>
         <file src="bin\Release\*.pdb" target="lib\net45\" />

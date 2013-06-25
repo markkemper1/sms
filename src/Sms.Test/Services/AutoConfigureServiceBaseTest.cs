@@ -58,6 +58,10 @@ namespace Sms.Test.Services
 
         public class AutoTestService : AutoConfigureServiceBase
         {
+            public override void Log(Exception ex)
+            {
+                Console.WriteLine(ex.ToString());
+            }
         }
 
         public class HelloWorldAuto
