@@ -194,7 +194,11 @@ namespace Sms.RoutingService
             if (pipeMessages.Status != TaskStatus.Running || nextMessageQueueTask.Status != TaskStatus.Running || sendQueueTask.Status != TaskStatus.Running)
             {
                 var exception = this.Stop();
-                throw exception;
+                throw new Exception(String.Format("Something isn't running. pipeMessages:  {0}, nextMessageQueue: {1}, sendQueue: {2} ", 
+                    pipeMessages.Status.ToString() ,
+                    nextMessageQueueTask.Status.ToString(),
+                    sendQueueTask.Status.ToString()
+                    ) , exception);
             }
         }
 
