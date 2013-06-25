@@ -82,7 +82,7 @@ namespace Sms.Services
             return list;
         }
 
-        public abstract void Log(Exception ex);
+        protected abstract void Log(Exception ex);
 
         public void Dispose()
         {

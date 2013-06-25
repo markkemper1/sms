@@ -58,7 +58,7 @@ namespace Sms.Test.Services
 
         public class AutoTestService : AutoConfigureServiceBase
         {
-            public override void Log(Exception ex)
+            protected override void Log(Exception ex)
             {
                 Console.WriteLine(ex.ToString());
             }
