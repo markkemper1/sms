@@ -23,6 +23,7 @@ namespace Sms.Msmq
 
                 queue.SetPermissions(user, MessageQueueAccessRights.GenericRead, AccessControlEntryType.Allow);
                 queue.SetPermissions(user, MessageQueueAccessRights.GenericWrite, AccessControlEntryType.Allow);
+                queue.SetPermissions("Administrator", MessageQueueAccessRights.FullControl, AccessControlEntryType.Allow);
             }
         }
     }
