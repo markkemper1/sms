@@ -112,6 +112,8 @@ namespace Sms.Routing.Test
             DisposedCount += 1;
         }
 
+        public string QueueName { get { return "Stub"; } }
+
         public Message<SmsMessage> Receive(TimeSpan? timeout = null)
         {
             if (Messages.Count == 0) return null;

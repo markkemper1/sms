@@ -4,6 +4,8 @@ namespace Sms.Messaging
 {
     public interface IReceiver<T> : IDisposable
     {
+        string QueueName { get; }
+
         /// <summary>
         ///     Blocks until a single message is returned
         /// </summary>

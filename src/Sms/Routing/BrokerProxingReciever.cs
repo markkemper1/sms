@@ -19,7 +19,10 @@ namespace Sms.Routing
             SendNextMessage = sendNextMessage;
             Receiver = receiver;
             ServiceName = serviceName;
+            QueueName = receiver.QueueName;
         }
+
+        public string QueueName { get; private set; }
 
         public Message<SmsMessage> Receive(TimeSpan? timeout = null)
         {

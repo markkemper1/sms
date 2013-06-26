@@ -13,6 +13,8 @@ namespace Sms.Test
         {
         }
 
+        public string QueueName { get { return "TestReceiver"; } }
+
         public Message<SmsMessage> Receive(TimeSpan? timeout = null)
         {
             return null;

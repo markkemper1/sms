@@ -290,18 +290,29 @@ namespace Sms.RoutingService
 
         public bool CheckOne()
         {
-            if (!IsActive && DateTime.UtcNow.Subtract(lastReceiveTried).TotalSeconds < 30) return false;
+            Logger.Debug("PipingMessageReceiver: Checking for message on {0},", Receiver.QueueName);
+
+            if (!IsActive && DateTime.UtcNow.Subtract(lastReceiveTried).TotalSeconds < 30)
+            {
+                Logger.Debug("PipingMessageReceiver: Not active. IsActive: {0}, lastReceived seconds: {1},", IsActive, DateTime.UtcNow.Subtract(lastReceiveTried).TotalSeconds);
+                return false;
+            }
 
             var message = Receiver.Receive(timeSpan);
+
+            
             lastReceiveTried = DateTime.UtcNow;
 
             if (message != null)
             {
+                Logger.Debug("PipingMessageReceiver: Received Message on Queue: {0}", Receiver.QueueName);
                 ToQueue.Send(message.Item);
                 message.Success();
                 IsActive = false;
                 return true;
             }
+
+            Logger.Debug("PipingMessageReceiver: No message received. QueueName: {0}", Receiver.QueueName);
 
             return false;
         }

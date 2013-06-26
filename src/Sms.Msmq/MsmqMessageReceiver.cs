@@ -19,6 +19,7 @@ namespace Sms.Msmq
 
             EnsureQueueExists.OfName(this.queueName);
 
+            QueueName = queueName;
             messageQueue = new MessageQueue(this.queueName);
             messageQueue.Formatter = new XmlMessageFormatter(new Type[1] { typeof(SmsMessageContent) });
         }
@@ -27,6 +28,8 @@ namespace Sms.Msmq
         {
             messageQueue.Dispose();
         }
+
+        public string QueueName { get; private set; }
 
         public Message<SmsMessage> Receive(TimeSpan? timeout = null)
         {

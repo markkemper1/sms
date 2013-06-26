@@ -18,6 +18,7 @@ namespace Sms.Services
             this.receiver = receiver;
             this.registry = registry;
             this.serializerFactory = serializerFactory;
+            this.QueueName = receiver.QueueName;
         }
 
         public void Configure<T>()
@@ -32,6 +33,8 @@ namespace Sms.Services
             var serializer = serializerFactory.Get(serviceDefinition.Serializer);
             serviceSerializers[serviceDefinition.ServiceName] = serializer;
         }
+
+        public string QueueName { get; private set; }
 
         public Message<object> Receive(TimeSpan? timeout = null)
         {
