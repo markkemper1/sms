@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Messaging;
+using System.Threading;
 using Sms.Messaging;
 
 namespace Sms.Msmq
@@ -27,89 +28,80 @@ namespace Sms.Msmq
             messageQueue.Dispose();
         }
 
-
         public Message<SmsMessage> Receive(TimeSpan? timeout = null)
         {
-            var transaction = new MessageQueueTransaction();
-
-            transaction.Begin();
+            MessageQueueTransaction transaction = null;
             try
             {
-                using (
-                    var raw = timeout.HasValue
-                                  ? messageQueue.Receive(timeout.Value, transaction)
-                                  : messageQueue.Receive(transaction))
+                try
                 {
+                    transaction = new MessageQueueTransaction();
+                    transaction.Begin();
+                    using (
+                        var raw = timeout.HasValue
+                                      ? messageQueue.Receive(timeout.Value, transaction)
+                                      : messageQueue.Receive(transaction))
+                    {
 
+                        var message = ((SmsMessageContent) raw.Body).ToMessage();
 
+                        Func<MessageQueueTransaction, Action<bool>> onReceive = queueTransaction =>
+                            {
+                                Action<bool> handler = x =>
+                                    {
+                                        if (x)
+                                            queueTransaction.Commit();
+                                        else
+                                            queueTransaction.Abort();
 
+                                        queueTransaction.Dispose();
+                                    };
+                                return handler;
+                            };
 
-                    var message = ((SmsMessageContent)raw.Body).ToMessage();
-
-                    Func<MessageQueueTransaction, Action<bool>> onReceive = queueTransaction =>
-                        {
-                            Action<bool> handler = x =>
-                                {
-                                    if (x)
-                                        queueTransaction.Commit();
-                                    else
-                                        queueTransaction.Abort();
-
-                                    queueTransaction.Dispose();
-                                };
-                            return handler;
-                        };
-
-                    return new Message<SmsMessage>(message, onReceive(transaction));
+                        return new Message<SmsMessage>(message, onReceive(transaction));
+                    }
                 }
-            }
-            catch (MessageQueueException ex)
-            {
-                if (ex.Message == "Timeout for the requested operation has expired.")
+                catch (MessageQueueException ex)
                 {
-                    transaction.Abort();
-                    transaction = null;
+                    TryToAbortTransaction(transaction);
+
+                    if (ex.Message == "Timeout for the requested operation has expired.")
+                    {
+                        Logger.Debug("Msmq receiver: timeout while waiting for message (this is ok)");
+                        return null;
+                    }
+                    int sleepForMs = timeout.HasValue ? timeout.Value.Milliseconds : 500;
+                    Logger.Warn("Msmq receiver: message queue exception on receive, sleeping for {0} Details: {1}",
+                                sleepForMs, ex);
+                    Thread.Sleep(sleepForMs);
                     return null;
                 }
-
+            }
+            catch (Exception ex)
+            {
+                TryToAbortTransaction(transaction);
+                Logger.Warn("Msmq receiver: unknow error: {0}", ex);
                 throw;
             }
         }
 
-        //public void Subscribe(Func<SmsMessage, bool> action)
-        //{
-        //    Receiving = true;
-        //    stopping = false;
+        private void TryToAbortTransaction(MessageQueueTransaction transaction)
+        {
+            if (transaction != null)
+            {
+                try
+                {
+                    transaction.Abort();
+                    transaction.Dispose();
+                    transaction = null;
+                }
+                catch (Exception ex)
+                {
+                    Logger.Warn("Msmq receiver: error shutting down transaction: {0}", ex);
+                }
+            }
+        }
 
-        //    try
-        //    {
-        //        while (!stopping)
-        //        {
-        //            try
-        //            {
-                       
-        //            }
-        //            catch (MessageQueueException ex)
-        //            {
-        //                if (ex.Message == "Timeout for the requested operation has expired.")
-        //                {
-        //                    Thread.Sleep(500);
-        //                    continue;
-        //                }
-
-        //                throw;
-        //            }
-        //        }
-        //    }
-        //    finally
-        //    {
-        //        Receiving = false;
-        //    }
-        //}
-
-        //public void Stop()
-        //{
-        //    stopping = true;
-        //}
     }
 }

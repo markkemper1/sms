@@ -40,6 +40,7 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="Logger.cs" />
     <Compile Include="Messaging\SmsMessageContent.cs" />
     <Compile Include="Services\IMessageSink.cs" />
     <Compile Include="Internals\Config.cs" />

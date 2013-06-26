@@ -117,5 +117,69 @@ namespace Sms.Msmq.Test
 
         }
 
+
+        [Test, Explicit]
+        public void long_running_test()
+        {
+            var queueName = @"SomeTestName";
+            var sender = new MsmqMessageSender(queueName);
+            bool send = true;
+            int sentCount = 0;
+            
+            Logger.Setup.Debug(Console.WriteLine);
+
+            var sentTask = Task.Factory.StartNew(() =>
+                {
+                    while (send)
+                    {
+                        sender.Send(new SmsMessage("http://test.sta1.com", "hello world"));
+                        sentCount++;
+                        Thread.Sleep(500);
+                    }
+                });
+
+
+            int i = 0;
+
+            var recever = new ReceiveTask<SmsMessage>(new MsmqMessageReceiver(queueName), x =>
+            {
+                i++;
+                x.Success();
+                Console.WriteLine("Sent: " + sentCount + " Received: " + i);
+            });
+
+            recever.Start();
+
+            int runs = 90000;
+            while (runs > 0)
+            {
+                Thread.Sleep(100);
+                runs--;
+
+                if(recever.Status != TaskStatus.Running)
+                    break;
+
+                if (sentTask.Status != TaskStatus.Running)
+                    break;
+            }
+
+            send = false;
+
+            var ex1 = recever.Stop();
+
+            recever.Dispose();
+
+            Thread.Sleep(2000);
+
+            if (ex1 != null)
+                throw ex1;
+
+            if (sentTask.Exception != null)
+                throw sentTask.Exception;
+
+
+            Assert.AreEqual(sentCount, i);
+        }
+
     }
 }

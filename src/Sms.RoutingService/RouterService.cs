@@ -17,6 +17,7 @@ namespace Sms.RoutingService
     public class RouterService
     {
         private static readonly ILog log = LogManager.GetLogger(typeof(RouterService));
+        private static readonly ILog smsLog = LogManager.GetLogger("SMS");
         private ReceiveTask<SmsMessage> sendQueueTask, nextMessageQueueTask;
         private Task pipeMessages ;
 
@@ -39,6 +40,11 @@ namespace Sms.RoutingService
             XmlConfigurator.ConfigureAndWatch(configFile);
 
             log.Info("RouterService logging setup..");
+
+            Logger.Setup.Info(s => smsLog.Info(s));
+            Logger.Setup.Warn(s => smsLog.Warn(s));
+            Logger.Setup.Error(s => smsLog.Error(s));
+            Logger.Setup.Fatal(s => smsLog.Fatal(s));
         }
 
         private void LoadConfiguration()
