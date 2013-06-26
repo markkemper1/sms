@@ -278,6 +278,7 @@ namespace Sms.RoutingService
         private readonly TimeSpan timeSpan;
         public IReceiver<SmsMessage> Receiver { get; set; }
         public IMessageSender<SmsMessage> ToQueue { get; set; }
+        private DateTime lastReceiveTried = new DateTime();
 
         public PipingMessageReceiver(IReceiver<SmsMessage> receiver, IMessageSender<SmsMessage> toQueue, TimeSpan timeSpan)
         {
@@ -289,9 +290,10 @@ namespace Sms.RoutingService
 
         public bool CheckOne()
         {
-            if (!IsActive) return false;
+            if (!IsActive && DateTime.UtcNow.Subtract(lastReceiveTried).TotalSeconds < 30) return false;
 
             var message = Receiver.Receive(timeSpan);
+            lastReceiveTried = DateTime.UtcNow;
 
             if (message != null)
             {

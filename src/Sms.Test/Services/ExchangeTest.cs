@@ -63,6 +63,57 @@ namespace Sms.Test.Services
 
         }
 
+        [Test]
+        public void receive_be_able_to_send_and_receive_with_long_wait()
+        {
+
+            var exchange = new Exchange();
+
+            service.Config.Load(new List<ServiceEndpoint>()
+                {
+                    new ServiceEndpoint()
+                        {
+                            ServiceName = "HelloWorldMessage",
+                            ProviderName = "msmq",
+                            QueueIdentifier = "HelloWorldMessages"
+                        }
+                });
+
+
+            int recieveCount = 0;
+            Message<HelloWorldMessage> message = null;
+            exchange.Register<HelloWorldMessage>(x =>
+            {
+                message = x;
+                recieveCount++;
+                x.Processed(true);
+            });
+
+            exchange.Start();
+
+            Thread.Sleep(20000);
+
+            exchange.Send(new HelloWorldMessage() { Text = "Hi there. Its " + DateTime.Now.ToString("HH:mm") });
+
+
+            Thread.Sleep(20000);
+
+            exchange.Send(new HelloWorldMessage() { Text = "Hi there. Its " + DateTime.Now.ToString("HH:mm") });
+
+            Thread.Sleep(20000);
+
+            exchange.Send(new HelloWorldMessage() { Text = "Hi there. Its " + DateTime.Now.ToString("HH:mm") });
+
+            Thread.Sleep(2000);
+            exchange.Stop();
+
+            Assert.That(message, Is.Not.Null);
+
+            Assert.That(recieveCount, Is.EqualTo(3));
+            Console.WriteLine(((HelloWorldMessage)message.Item).Text);
+
+        }
+
 
 
         public class HelloWorldMessage

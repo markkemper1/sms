@@ -10,6 +10,7 @@ namespace Sms.Routing
         private IReceiver<SmsMessage> Receiver { get; set; }
         private string ServiceName { get; set; }
         private bool outstanding = false;
+        private DateTime lastReceiveMessageSent = new DateTime();
 
         public BrokerProxingReceiver(IMessageSender<SmsMessage> sendNextMessage, IReceiver<SmsMessage> receiver, string serviceName)
         {
@@ -22,8 +23,9 @@ namespace Sms.Routing
 
         public Message<SmsMessage> Receive(TimeSpan? timeout = null)
         {
-            if (!outstanding)
+            if (!outstanding || DateTime.UtcNow.Subtract(lastReceiveMessageSent).TotalSeconds > 30)
             {
+                lastReceiveMessageSent = DateTime.UtcNow;
                 SendNextMessage.Send(new SmsMessage(ServiceName, null, new Dictionary<string, string>()
                     {
                         {RouterSettings.ServiceNameHeaderKey, ServiceName}
