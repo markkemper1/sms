@@ -161,6 +161,7 @@ namespace Sms.RoutingService
                         receivers[queueIdentifier] = new PipingMessageReceiver(receiver, toQueue, TimeSpan.FromMilliseconds(10));
                     }
 
+                    Logger.Debug("ReceiveeTask: setting piping receiver active for {0},", queueIdentifier);
                     receivers[queueIdentifier].IsActive = true;
 
                     message.Success();
@@ -185,7 +186,7 @@ namespace Sms.RoutingService
                                                        hasWork = item.Value.CheckOne() || hasWork;
                                                    }
 
-                                                   Thread.Sleep(hasWork ? 10 : 100);
+                                                   Thread.Sleep(hasWork ? 10 : 200);
                                                }
                                            }
                                            catch (Exception ex)
@@ -278,7 +279,6 @@ namespace Sms.RoutingService
         private readonly TimeSpan timeSpan;
         public IReceiver<SmsMessage> Receiver { get; set; }
         public IMessageSender<SmsMessage> ToQueue { get; set; }
-        private DateTime lastReceiveTried = new DateTime();
 
         public PipingMessageReceiver(IReceiver<SmsMessage> receiver, IMessageSender<SmsMessage> toQueue, TimeSpan timeSpan)
         {
@@ -292,16 +292,13 @@ namespace Sms.RoutingService
         {
             Logger.Debug("PipingMessageReceiver: Checking for message on {0},", Receiver.QueueName);
 
-            if (!IsActive && DateTime.UtcNow.Subtract(lastReceiveTried).TotalSeconds < 30)
+            if (!IsActive)
             {
-                Logger.Debug("PipingMessageReceiver: Not active. IsActive: {0}, lastReceived seconds: {1},", IsActive, DateTime.UtcNow.Subtract(lastReceiveTried).TotalSeconds);
+                Logger.Debug("PipingMessageReceiver: Not active. IsActive: {0}", IsActive);
                 return false;
             }
 
             var message = Receiver.Receive(timeSpan);
-
-            
-            lastReceiveTried = DateTime.UtcNow;
 
             if (message != null)
             {
