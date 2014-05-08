@@ -75,7 +75,9 @@ namespace Sms.Messaging
             stopping = true;
             try
             {
-                Task.WaitAll(task);
+                if(task != null)
+                    Task.WaitAll(task);
+
                 return null;
             }
             catch (AggregateException ae)
