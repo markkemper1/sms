@@ -1,0 +1,47 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+
+  <Target Name="CreateNuget"  AfterTargets="Build"  Condition="$(Configuration) == 'Release' " >
+
+    <ItemGroup>
+      <PackageFile Include=" $(OutDir)$(ProjectName)*.nupkg" />
+    </ItemGroup>
+
+    <Message Text="Nuget Packing: $(NuGetExePath) pack $(ProjectPath) -Build -OutputDirectory $(TargetDir) "
+              Importance="high" />
+    
+    <Exec Command="$(NuGetExePath) pack $(ProjectPath) -OutputDirectory $(TargetDir) -Properties Configuration=Release"/>
+
+
+    <ItemGroup>
+      <PackageFile Include=" $(TargetDir)$(ProjectName)*.nupkg" />
+    </ItemGroup>
+    
+    <Message Text="NUGET_REPOSITORY: $(NUGET_REPOSITORY)" Importance="high" />
+
+    <Copy SourceFiles="@(PackageFile)" DestinationFolder="$(NUGET_REPOSITORY)" Condition="$(NUGET_REPOSITORY) != ''  "    />
+    
+  </Target>
+
+
+  <Target Name="CleanNuget" AfterTargets="Clean" >
+    <ItemGroup>
+      <PackageFile Include=" $(OutDir)$(ProjectName)*.nupkg" />
+    </ItemGroup>
+
+    <Delete Files="@(PackageFile)"  />
+
+  </Target>
+  
+  <Target Name="NugetPush" AfterTargets="CreateNuget" Condition="$(NugetPush) != ''  " >
+
+    <ItemGroup>
+      <PackageFile Include=" $(OutDir)$(ProjectName)*.nupkg" />
+    </ItemGroup>
+
+    <Exec Command="$(NuGetExePath) push %(PackageFile.Identity)"  ContinueOnError="true"/>
+
+  </Target>
+
+
+</Project>

@@ -8,11 +8,11 @@
         <projectUrl>http://github.com/markkemper1/sms</projectUrl>
         <requireLicenseAcceptance>false</requireLicenseAcceptance>
         <summary>
-          A windows msmq implementation of a sms message sender and receiver.
+          A aws sqs implementation of a sms message sender and receiver.
         </summary>
         <description>
-            A windows msmq implementation of a sms message sender and receiver.
-        </description>
+					A aws sqs implementation of a sms message sender and receiver.
+				</description>
         <dependencies>
             <dependency id="Sms" version="1.0.2" />
         </dependencies>
