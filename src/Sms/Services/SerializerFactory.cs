@@ -1,24 +1,15 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using Sms.Internals;
 
 namespace Sms.Services
 {
-    public class SerializerFactory
+    public class SerializerFactory : ISerializerFactory
     {
         private Dictionary<string, ISerializer> serializers;
 
         static readonly object LockMe = new object();
-
-        private static readonly SerializerFactory Instance = new SerializerFactory();
-
-        //public static ISerializer Get(string provider)
-        //{
-        //    return Instance.GetSeralizer(provider);
-        //}
 
         public ISerializer Get(string provider)
         {

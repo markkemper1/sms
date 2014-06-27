@@ -14,7 +14,7 @@
 					A aws sqs implementation of a sms message sender and receiver.
 				</description>
         <dependencies>
-            <dependency id="Sms" version="1.0.2" />
+            <dependency id="Sms" version="2.0.0" />
         </dependencies>
     </metadata>
 

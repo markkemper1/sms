@@ -5,22 +5,26 @@ using Sms.Messaging;
 
 namespace Sms.Msmq
 {
-    public class MsmqMessageSender : IMessageSender<SmsMessage>, IDisposable
+    public class MsmqMessageSink : IMessageSink, IDisposable
     {
         readonly MessageQueue messageQueue;
+        private readonly string msmqQueueName;
+        public string QueueName { get; private set; }
+        public string ProviderName { get; private set; }
 
-        private string QueueName { get; set; }
-
-        public MsmqMessageSender(string queueName)
+        public MsmqMessageSink(string providerName, string queueName)
         {
             if (queueName == null) throw new ArgumentNullException("queueName");
 
 
-            QueueName = @".\Private$\" + queueName;
+            QueueName = queueName;
+            ProviderName = providerName;
 
-            EnsureQueueExists.OfName(QueueName);
+            msmqQueueName = @".\Private$\" + queueName;
 
-            messageQueue = new MessageQueue(QueueName);
+            EnsureQueueExists.OfName(msmqQueueName);
+
+            messageQueue = new MessageQueue(msmqQueueName);
         }
 
         public void Dispose()

@@ -3,7 +3,7 @@ using Sms.Messaging;
 
 namespace Sms.Test
 {
-    public class TestReceiver : IReceiver<SmsMessage>
+    public class TestReceiver : IReceiver
     {
         public void Subscribe(Func<SmsMessage, bool> action)
         {
@@ -13,9 +13,10 @@ namespace Sms.Test
         {
         }
 
+        public string ProviderName { get; private set; }
         public string QueueName { get { return "TestReceiver"; } }
 
-        public Message<SmsMessage> Receive(TimeSpan? timeout = null)
+        public MessageResult Receive(TimeSpan? timeout = null)
         {
             return null;
         }

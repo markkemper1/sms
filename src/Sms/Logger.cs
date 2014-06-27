@@ -1,22 +1,9 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace Sms
 {
     public static class Logger
     {
-        private enum Level
-        {
-            Debug,
-            Info,
-            Warn,
-            Error,
-            Fatal
-        }
-
         public class SetupHelpler
         {
             internal SetupHelpler(){}

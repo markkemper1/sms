@@ -2,7 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 
-namespace Sms.RoutingService
+namespace Sms.Router
 {
     public class Configuration
     {
@@ -36,7 +36,7 @@ namespace Sms.RoutingService
         {
             lock (LockMe)
             {
-                services = endpoints.ToDictionary(x => x.ServiceName, x => x, StringComparer.InvariantCultureIgnoreCase);
+                services = endpoints.ToDictionary(x => x.MessageType, x => x, StringComparer.InvariantCultureIgnoreCase);
             }
         }
     }

@@ -1,81 +1,81 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading;
-using System.Threading.Tasks;
-using NUnit.Framework;
-using Sms.RoutingService;
-using Sms.Services;
+﻿//using System;
+//using System.Collections.Generic;
+//using System.Linq;
+//using System.Text;
+//using System.Threading;
+//using System.Threading.Tasks;
+//using NUnit.Framework;
+//using Sms.RoutingService;
+//using Sms.Services;
 
-namespace Sms.Test.Services
-{
-    [TestFixture]
-    public class AutoConfigureServiceBaseTest
-    {
-        RouterService router;
+//namespace Sms.Test.Services
+//{
+//    [TestFixture]
+//    public class AutoConfigureServiceBaseTest
+//    {
+//        RouterService router;
 
-        [SetUp]
-        public void SetUp()
-        {
-            router = new RoutingService.RouterService();
-            Task.Factory.StartNew(router.Start);
-        }
+//        [SetUp]
+//        public void SetUp()
+//        {
+//            router = new RoutingService.RouterService();
+//            Task.Factory.StartNew(router.Start);
+//        }
 
-        [TearDown]
-        public void TearDown()
-        {
-            router.Stop();
-        }
+//        [TearDown]
+//        public void TearDown()
+//        {
+//            router.Stop();
+//        }
 
-        [Test]
-        public void should_configure_Services()
-        {
-            var exchange = new Exchange();
+//        [Test]
+//        public void should_configure_Services()
+//        {
+//            var exchange = new Exchange();
 
-            router.Config.Load(new List<ServiceEndpoint>()
-                {
-                    new ServiceEndpoint()
-                        {
-                            ServiceName = "HelloWorldAuto",
-                            ProviderName = "msmq",
-                            QueueIdentifier = "HelloWorldAuto__1"
-                        },
-                });
+//            router.Config.Load(new List<ServiceEndpoint>()
+//                {
+//                    new ServiceEndpoint()
+//                        {
+//                            ServiceName = "HelloWorldAuto",
+//                            ProviderName = "msmq",
+//                            QueueIdentifier = "HelloWorldAuto__1"
+//                        },
+//                });
 
-            exchange.Send(new HelloWorldAuto(){ Text = "Ping"});
+//            exchange.Send(new HelloWorldAuto(){ Text = "Ping"});
 
 
-            var auto = new AutoTestService();
+//            var auto = new AutoTestService();
 
-            auto.Start();
+//            auto.Start();
 
-            Thread.Sleep(1000);
+//            Thread.Sleep(1000);
 
-            auto.Stop();
+//            auto.Stop();
             
-        }
+//        }
 
-        public class AutoTestService : AutoConfigureServiceBase
-        {
-            protected override void Log(Exception ex)
-            {
-                Console.WriteLine(ex.ToString());
-            }
-        }
+//        public class AutoTestService : AutoConfigureServiceBase
+//        {
+//            protected override void Log(Exception ex)
+//            {
+//                Console.WriteLine(ex.ToString());
+//            }
+//        }
 
-        public class HelloWorldAuto
-        {
-            public string Text { get; set; }
-        }
+//        public class HelloWorldAuto
+//        {
+//            public string Text { get; set; }
+//        }
 
-        public class TestServiceReceiver : ServiceReceiver<HelloWorldAuto>
-        {
-            public override void Process(Message<HelloWorldAuto> message)
-            {
-                Console.WriteLine("I got 1!");
-                message.Processed(true);
-            }
-        }
-    }
-}
+//        public class TestServiceReceiver : ServiceReceiver<HelloWorldAuto>
+//        {
+//            public override void Process(Message<HelloWorldAuto> message)
+//            {
+//                Console.WriteLine("I got 1!");
+//                message.Processed(true);
+//            }
+//        }
+//    }
+//}

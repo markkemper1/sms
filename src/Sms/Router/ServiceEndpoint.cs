@@ -1,8 +1,8 @@
-﻿namespace Sms.RoutingService
+﻿namespace Sms.Router
 {
     public class ServiceEndpoint
     {
-        public string ServiceName { get; set; }
+        public string MessageType { get; set; }
 
         public string ProviderName { get; set; }
 

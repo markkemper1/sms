@@ -1,15 +1,12 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Linq;
 
 namespace Sms.Services
 {
-    public class ServiceDefinitionRegistry
+    public class ServiceDefinitionRegistry : IServiceDefinitionRegistry
     {
         private Dictionary<Type, ServiceDefinition> typeConfigurations = new Dictionary<Type, ServiceDefinition>();
-
-        static readonly object LockMe = new object();
-
-        private static readonly ServiceDefinitionRegistry Instance = new ServiceDefinitionRegistry();
 
         public ServiceDefinition Get<T>()
         {
@@ -20,12 +17,6 @@ namespace Sms.Services
         {
             return GetServiceConfiguration(type);
         }
-
-        //public static ServiceDefinition Get<T>()
-        //{
-        //    return Instance.GetServiceConfiguration(typeof(T));
-        //}
-
 
         private ServiceDefinition GetServiceConfiguration(Type type)
         {
@@ -46,10 +37,12 @@ namespace Sms.Services
         {
             var attribute = (ServiceDefinitionAttribute)Attribute.GetCustomAttribute(type, typeof(ServiceDefinitionAttribute)) ?? DefaultServiceDefinition(type);
 
-            return new ServiceDefinition()
+            var customHeaders = Attribute.GetCustomAttributes(type, typeof (ServiceHeaderAttribute)).Cast<ServiceHeaderAttribute>().ToArray();
+
+            return new ServiceDefinition(attribute.RequestType)
             {
                 Serializer = attribute.Serializer,
-                ServiceName = attribute.ServiceName
+                Headers = customHeaders,
             };
         }
 
@@ -59,5 +52,11 @@ namespace Sms.Services
         }
 
 
+    }
+
+    public interface IServiceDefinitionRegistry
+    {
+        ServiceDefinition Get<T>();
+        ServiceDefinition Get(Type type);
     }
 }

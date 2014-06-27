@@ -2,14 +2,16 @@
 
 namespace Sms.Messaging
 {
-    public interface IReceiver<T> : IDisposable
+    public interface IReceiver : IDisposable
     {
+        string ProviderName { get;  }
+
         string QueueName { get; }
 
         /// <summary>
         ///     Blocks until a single message is returned
         /// </summary>
         /// <returns></returns>
-        Message<T> Receive(TimeSpan? timeout = null);
+        MessageResult Receive(TimeSpan? timeout = null);
     }
 }

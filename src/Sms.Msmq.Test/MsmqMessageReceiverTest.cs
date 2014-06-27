@@ -14,7 +14,7 @@ namespace Sms.Msmq.Test
         public void should_send_test_message()
         {
             var queueName = @"SomeTestName";
-            var sender = new MsmqMessageSender(queueName);
+            var sender = new MsmqMessageSink(MsmqFactory.ProviderName, queueName);
 
             sender.Send(new SmsMessage("http://test.sta1.com", "hello world"));
             sender.Send(new SmsMessage("http://test.sta1.com", "hello world"));
@@ -22,7 +22,7 @@ namespace Sms.Msmq.Test
 
             int i = 0;
 
-            var recever = new ReceiveTask<SmsMessage>(new MsmqMessageReceiver(queueName), x =>
+            var recever = new ReceiveTask(new MsmqMessageReceiver(MsmqFactory.ProviderName, queueName), x =>
                 {
                     i++;
                     x.Success();
@@ -47,9 +47,9 @@ namespace Sms.Msmq.Test
 
 
             var queueName = Guid.NewGuid().ToString();
-            var sender = new MsmqMessageSender(queueName);
+            var sender = new MsmqMessageSink(MsmqFactory.ProviderName, queueName);
 
-            Stopwatch stopwatch = new Stopwatch();
+            var stopwatch = new Stopwatch();
             stopwatch.Start();
 
             sender.Send(new SmsMessage("http://test.sta1.com", "hello world"));
@@ -58,7 +58,7 @@ namespace Sms.Msmq.Test
             Console.WriteLine("Send took: " + stopwatch.ElapsedMilliseconds + "ms");
 
             int i = 0;
-             var receiver = new ReceiveTask<SmsMessage>(new MsmqMessageReceiver(queueName), x =>
+            var receiver = new ReceiveTask(new MsmqMessageReceiver(MsmqFactory.ProviderName, queueName), x =>
             {
                 throw new ArgumentException("DIE");
             });
@@ -69,7 +69,7 @@ namespace Sms.Msmq.Test
 
             receiver.Dispose();
 
-            receiver = new ReceiveTask<SmsMessage>(new MsmqMessageReceiver(queueName), x =>
+            receiver = new ReceiveTask(new MsmqMessageReceiver(MsmqFactory.ProviderName, queueName), x =>
              {
                 i++;
                 x.Success();
@@ -92,11 +92,11 @@ namespace Sms.Msmq.Test
 
 
             var queueName =  Guid.NewGuid().ToString();
-            var sender = new MsmqMessageSender(queueName);
+            var sender = new MsmqMessageSink(MsmqFactory.ProviderName, queueName);
 
             int i = 0;
 
-            var receiver = new ReceiveTask<SmsMessage>(new MsmqMessageReceiver(queueName), x =>
+            var receiver = new ReceiveTask(new MsmqMessageReceiver(MsmqFactory.ProviderName, queueName), x =>
            {
                 i++;
                 x.Success();
@@ -122,7 +122,7 @@ namespace Sms.Msmq.Test
         public void long_running_test()
         {
             var queueName = @"SomeTestName";
-            var sender = new MsmqMessageSender(queueName);
+            var sender = new MsmqMessageSink(MsmqFactory.ProviderName, queueName);
             bool send = true;
             int sentCount = 0;
             
@@ -141,7 +141,7 @@ namespace Sms.Msmq.Test
 
             int i = 0;
 
-            var recever = new ReceiveTask<SmsMessage>(new MsmqMessageReceiver(queueName), x =>
+            var recever = new ReceiveTask(new MsmqMessageReceiver(MsmqFactory.ProviderName, queueName), x =>
             {
                 i++;
                 x.Success();

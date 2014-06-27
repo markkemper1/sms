@@ -4,13 +4,13 @@ namespace Sms.Services
 {
     public class ServiceDefinitionAttribute: Attribute
     {
-        public string ServiceName { get; set; }
-
         public string Serializer { get; set; }
 
-        public ServiceDefinitionAttribute(string serviceName, string serializer)
+        public string RequestType { get; set; }
+
+        public ServiceDefinitionAttribute(string requestType, string serializer)
         {
-            ServiceName = serviceName;
+            RequestType = requestType;
             Serializer = serializer;
         }
     }

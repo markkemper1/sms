@@ -5,7 +5,7 @@ using Sms.Messaging;
 
 namespace Sms.Msmq
 {
-    public class MsmqMessageReceiver : IReceiver<SmsMessage>, IDisposable
+    public class MsmqMessageReceiver : IReceiver, IDisposable
     {
         readonly MessageQueue messageQueue = null;
         //private bool stopping;
@@ -13,13 +13,17 @@ namespace Sms.Msmq
 
         //public bool Receiving { get; private set; }
 
-        public MsmqMessageReceiver(string queueName)
+        public string ProviderName { get; private set; }
+
+        public MsmqMessageReceiver(string providerName, string queueName)
         {
+            ProviderName = providerName;
+            QueueName = queueName;
             this.queueName = @".\Private$\" + queueName;
 
             EnsureQueueExists.OfName(this.queueName);
 
-            QueueName = queueName;
+            
             messageQueue = new MessageQueue(this.queueName);
             messageQueue.Formatter = new XmlMessageFormatter(new Type[1] { typeof(SmsMessageContent) });
         }
@@ -31,7 +35,7 @@ namespace Sms.Msmq
 
         public string QueueName { get; private set; }
 
-        public Message<SmsMessage> Receive(TimeSpan? timeout = null)
+        public MessageResult Receive(TimeSpan? timeout = null)
         {
             MessageQueueTransaction transaction = null;
             try
@@ -52,17 +56,20 @@ namespace Sms.Msmq
                             {
                                 Action<bool> handler = x =>
                                     {
-                                        if (x)
-                                            queueTransaction.Commit();
-                                        else
-                                            queueTransaction.Abort();
+                                        if (queueTransaction.Status == MessageQueueTransactionStatus.Pending)
+                                        {
+                                            if (x)
+                                                queueTransaction.Commit();
+                                            else
+                                                queueTransaction.Abort();
+                                        }
 
                                         queueTransaction.Dispose();
                                     };
                                 return handler;
                             };
 
-                        return new Message<SmsMessage>(message, onReceive(transaction));
+                        return new MessageResult(message, onReceive(transaction));
                     }
                 }
                 catch (MessageQueueException ex)

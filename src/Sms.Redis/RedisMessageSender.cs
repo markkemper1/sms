@@ -3,11 +3,11 @@ using Sms.Messaging;
 
 namespace Sms.Redis
 {
-    public class RedisMessageSender : IMessageSender<SmsMessage>
+    public class RedisMessageSink : IMessageSink
     {
         private readonly RedisNativeClient client;
 
-        public RedisMessageSender(string host, int port, string password, int db)
+        public RedisMessageSink(string host, int port, string password, int db)
         {
             client = new RedisNativeClient(host, port, password, db);
         }
@@ -16,6 +16,10 @@ namespace Sms.Redis
         {
             client.Dispose();
         }
+
+        public string ProviderName { get; private set; }
+
+        public string QueueName { get; private set; }
 
         public void Send(SmsMessage smsMessage)
         {

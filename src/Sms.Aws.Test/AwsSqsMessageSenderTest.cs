@@ -13,7 +13,7 @@ namespace Sms.Aws.Test
         public void should_send_test_message()
         {
             const string queueName = @"SomeTestName";
-            var sender = new AwsSqsMessageSender(queueName);
+            var sender = new AwsSqsMessageSink(AwsSqsFactory.ProviderName, queueName);
 
             sender.Send(new SmsMessage("http://test.sta1.com", "hello world"));
             sender.Send(new SmsMessage("http://test.sta1.com", "hello world"));

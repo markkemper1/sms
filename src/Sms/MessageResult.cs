@@ -1,18 +1,19 @@
 ﻿using System;
+using Sms.Messaging;
 
 namespace Sms
 {
-    public class Message<T>
+    public class MessageResult
     {
-        private readonly T message;
+        private readonly SmsMessage message;
         private readonly Action<bool> processed;
 
-        public Message(T message, Action<bool> processed) 
+        public MessageResult(SmsMessage message, Action<bool> processed) 
         {
             this.message = message;
             this.processed = processed;
         }
-        public T Item {get { return message; }}
+        public SmsMessage Item { get { return message; } }
 
         public void Processed(bool successful)
         {

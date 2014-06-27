@@ -7,7 +7,7 @@ using Sms.Messaging;
 
 namespace Sms.Aws
 {
-    public class AwsSqsMessageReceiver : IReceiver<SmsMessage>, IDisposable
+    public class AwsSqsMessageReceiver : IReceiver, IDisposable
     {
         private readonly string queueName;
         private AmazonSQSClient client;
@@ -15,17 +15,21 @@ namespace Sms.Aws
 
         //public bool Receiving { get; private set; }
 
-        public AwsSqsMessageReceiver(string queueName)
+        public string QueueName { get; private set; }
+        public string ProviderName { get; private set; }
+
+        public AwsSqsMessageReceiver(string provideName, string queueName)
         {
             if (queueName == null) throw new ArgumentNullException("queueName");
+
+            QueueName = queueName;
+            ProviderName = provideName;
 
             client = ClientFactory.Create();
             queueUrl = client.GetQueueUrl(queueName);
         }
 
-        public string QueueName { get; private set; }
-
-        public Message<SmsMessage> Receive(TimeSpan? timeout = null)
+        public MessageResult Receive(TimeSpan? timeout = null)
         {
             try
             {
@@ -72,7 +76,7 @@ namespace Sms.Aws
                     return handler;
                 };
 
-                return new Message<SmsMessage>(message, onReceive(awsMessage.ReceiptHandle));
+                return new MessageResult(message, onReceive(awsMessage.ReceiptHandle));
 
             }
             catch (Exception ex)

@@ -15,7 +15,18 @@ namespace Sms.Aws.Test
         public void should_send_receive_test_message()
         {
             var queueName = @"SomeTestName";
-            var sender = new AwsSqsMessageSender(queueName);
+
+
+            var recever = new ReceiveTask(new AwsSqsMessageReceiver(AwsSqsFactory.ProviderName, queueName), x => x.Success());
+
+            recever.Start();
+
+            Thread.Sleep(1000);
+
+            recever.Stop();
+
+
+            var sender = new AwsSqsMessageSink(AwsSqsFactory.ProviderName, queueName);
 
             sender.Send(new SmsMessage("http://test.sta1.com", "hello world"));
             sender.Send(new SmsMessage("http://test.sta1.com", "hello world"));
@@ -23,13 +34,14 @@ namespace Sms.Aws.Test
 
             int i = 0;
 
-            var recever = new ReceiveTask<SmsMessage>(new AwsSqsMessageReceiver(queueName), x =>
+            recever = new ReceiveTask(new AwsSqsMessageReceiver(AwsSqsFactory.ProviderName, queueName), x =>
             {
                 i++;
                 x.Success();
             });
 
             recever.Start();
+
 
             Thread.Sleep(1000);
 
@@ -46,7 +58,7 @@ namespace Sms.Aws.Test
         public void should_leave_message_on_queue_if_exception()
         {
             var queueName = Guid.NewGuid().ToString();
-            var sender = new AwsSqsMessageSender(queueName);
+            var sender = new AwsSqsMessageSink(AwsSqsFactory.ProviderName, queueName);
 
             Stopwatch stopwatch = new Stopwatch();
             stopwatch.Start();
@@ -57,7 +69,7 @@ namespace Sms.Aws.Test
             Console.WriteLine("Send took: " + stopwatch.ElapsedMilliseconds + "ms");
 
             int i = 0;
-             var receiver = new ReceiveTask<SmsMessage>(new AwsSqsMessageReceiver(queueName), x =>
+            var receiver = new ReceiveTask(new AwsSqsMessageReceiver(AwsSqsFactory.ProviderName, queueName), x =>
             {
                 throw new ArgumentException("DIE");
             });
@@ -68,7 +80,7 @@ namespace Sms.Aws.Test
 
             receiver.Dispose();
 
-            receiver = new ReceiveTask<SmsMessage>(new AwsSqsMessageReceiver(queueName), x =>
+            receiver = new ReceiveTask(new AwsSqsMessageReceiver(AwsSqsFactory.ProviderName, queueName), x =>
              {
                 i++;
                 x.Success();
@@ -90,11 +102,11 @@ namespace Sms.Aws.Test
 
 
             var queueName =  Guid.NewGuid().ToString();
-            var sender = new AwsSqsMessageSender(queueName);
+            var sender = new AwsSqsMessageSink(AwsSqsFactory.ProviderName, queueName);
 
             int i = 0;
 
-            var receiver = new ReceiveTask<SmsMessage>(new AwsSqsMessageReceiver(queueName), x =>
+            var receiver = new ReceiveTask(new AwsSqsMessageReceiver(AwsSqsFactory.ProviderName, queueName), x =>
            {
                 i++;
                 x.Success();
@@ -120,7 +132,7 @@ namespace Sms.Aws.Test
         public void long_running_test()
         {
             var queueName = @"SomeTestName";
-            var sender = new AwsSqsMessageSender(queueName);
+            var sender = new AwsSqsMessageSink(AwsSqsFactory.ProviderName, queueName);
             bool send = true;
             int sentCount = 0;
             
@@ -139,7 +151,7 @@ namespace Sms.Aws.Test
 
             int i = 0;
 
-            var recever = new ReceiveTask<SmsMessage>(new AwsSqsMessageReceiver(queueName), x =>
+            var recever = new ReceiveTask(new AwsSqsMessageReceiver(AwsSqsFactory.ProviderName, queueName), x =>
             {
                 i++;
                 x.Success();

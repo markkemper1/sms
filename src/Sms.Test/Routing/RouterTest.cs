@@ -4,6 +4,8 @@ using System.Linq;
 using NUnit.Framework;
 using Shouldly;
 using Sms.Messaging;
+using Sms.Services;
+using IMessageSink = Sms.Messaging.IMessageSink;
 
 namespace Sms.Routing.Test
 {
@@ -11,22 +13,24 @@ namespace Sms.Routing.Test
     public class RouterTest
     {
         protected StubSender Sender { get; set; }
-        protected StubSender NextMessage { get; set; }
-        protected StubReceiver Receiver { get; set; }
 
         [SetUp]
         public void SetUp()
         {
             Sender = new StubSender();
-            NextMessage = new StubSender();
+        }
+
+        private RouterSink CreateRouter()
+        {
+            return new RouterSink(Sender, new ServiceDefinitionRegistry(), new SerializerFactory());
         }
 
         [Test]
         public void send_should_send_message_via_broker_send_queue()
         {
-            var target = new Router(Sender,NextMessage, Factory);
+            var target = CreateRouter();
 
-            target.Send("test", "hello world");
+            target.Send(new SmsMessage( "test", "hello world"));
 
             Sender.Sent.Count.ShouldBe(1);
             Sender.Sent[0].ToAddress.ShouldBe("test");
@@ -36,9 +40,9 @@ namespace Sms.Routing.Test
         [Test]
         public void send_should_add_service_name_in_header()
         {
-            var target = new Router(Sender, NextMessage, Factory);
+            var target = CreateRouter();
 
-            target.Send("test", "hello world");
+            target.Send(new SmsMessage("test", "hello world"));
 
             Sender.Sent.Count.ShouldBe(1);
             Sender.Sent[0].Headers.Keys.Count.ShouldBe(1);
@@ -46,64 +50,9 @@ namespace Sms.Routing.Test
             Sender.Sent[0].Headers.Values.First().ShouldBe("test");
         }
 
-        [Test]
-        public void receive_should_create_new_receiver()
-        {
-            var target = new Router(Sender, NextMessage, Factory);
-
-            var receiver = target.Receiver("test");
-
-
-            receiver.ShouldNotBe(null);
-        }
-
-        [Test]
-        public void receive_should_tell_broker_to_send_next_message()
-        {
-            var target = new Router(Sender, NextMessage, Factory);
-
-            var receiver = target.Receiver("test");
-            var message = receiver.Receive();
-
-            NextMessage.Sent.Count.ShouldBe(1);
-            NextMessage.Sent[0].ToAddress.ShouldBe("test");
-
-
-            receiver.ShouldBeTypeOf<BrokerProxingReceiver>();
-
-            NextMessage.Sent[0].Headers.First().Value.ShouldBe("test");
-        }
-
-        [Test]
-        public void receive_should_tell_broker_to_send_another_message_when_first_has_processed()
-        {
-            var target = new Router(Sender, NextMessage, Factory);
-
-            var receiver = target.Receiver("test");
-
-            var message1 = receiver.Receive();
-
-            NextMessage.Sent.Count.ShouldBe(1);
-            NextMessage.Sent[0].ToAddress.ShouldBe("test");
-            message1.ShouldBe(null);
-
-            Receiver.Messages.Enqueue(new SmsMessage("test", "xx"));
-            var message2 = receiver.Receive();
-
-            NextMessage.Sent.Count.ShouldBe(1);
-            NextMessage.Sent[0].ToAddress.ShouldBe("test");
-            message2.ShouldNotBe(null);
-
-        }
-
-        private IReceiver<SmsMessage> Factory(string queueName)
-        {
-            Receiver = new StubReceiver();
-            return Receiver;
-        }
     }
 
-    public class StubReceiver : IReceiver<SmsMessage>
+    public class StubSender : IMessageSink
     {
         public int DisposedCount = 0;
 
@@ -112,29 +61,8 @@ namespace Sms.Routing.Test
             DisposedCount += 1;
         }
 
-        public string QueueName { get { return "Stub"; } }
-
-        public Message<SmsMessage> Receive(TimeSpan? timeout = null)
-        {
-            if (Messages.Count == 0) return null;
-            var message = Messages.Peek();
-            return new Message<SmsMessage>(message, b =>
-            {
-                                                         if (b) Messages.Dequeue();
-            });
-        }
-
-        public Queue<SmsMessage>  Messages = new Queue<SmsMessage>();
-    }
-
-    public class StubSender : IMessageSender<SmsMessage>
-    {
-        public int DisposedCount = 0;
-
-        public void Dispose()
-        {
-            DisposedCount += 1;
-        }
+        public string ProviderName { get; private set; }
+        public string QueueName { get; private set; }
 
         public void Send(SmsMessage smsMessage)
         {

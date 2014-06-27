@@ -1,21 +1,21 @@
-﻿//using Sms.Messaging;
+﻿using Sms.Messaging;
 
-//namespace Sms.Aws
-//{
-//    public class AwsSqsFactory : IMessagingFactory
-//    {
-//        public const string ProviderName = "awssqs";
+namespace Sms.Aws
+{
+    public class AwsSqsFactory : IMessagingFactory
+    {
+        public const string ProviderName = "awssqs";
 
-//        public string Name { get { return ProviderName; } }
+        public string Name { get { return ProviderName; } }
 
-//        public IMessageSender<SmsMessage> Sender(string queueName)
-//        {
-//            return new AwsSqsMessageSender(queueName);
-//        }
+        public IMessageSink Sender(string queueName)
+        {
+            return new AwsSqsMessageSink(ProviderName, queueName);
+        }
 
-//        public IReceiver<SmsMessage> Receiver(string queueName)
-//        {
-//            return new AwsSqsMessageReceiver(queueName);
-//        }
-//    }
-//}
+        public IReceiver Receiver(string queueName)
+        {
+            return new AwsSqsMessageReceiver(ProviderName, queueName);
+        }
+    }
+}

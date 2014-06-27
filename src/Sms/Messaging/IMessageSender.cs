@@ -2,8 +2,12 @@
 
 namespace Sms.Messaging
 {
-    public interface IMessageSender<T> : IDisposable
+    public interface IMessageSink : IDisposable
     {
-        void Send(T smsMessage);
+        string ProviderName { get; }
+
+        string QueueName { get; }
+
+        void Send(SmsMessage smsMessage);
     }
 }

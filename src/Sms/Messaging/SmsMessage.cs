@@ -18,7 +18,7 @@ namespace Sms.Messaging
 
         public string Id { get; private set; }
 
-        public IDictionary<string,string> Headers { get { return new Dictionary<string, string>(headers);} }
+        public IDictionary<string,string> Headers { get { return headers;} }
 
         public string ToAddress { get; set; }
         public string Body { get; private set; }

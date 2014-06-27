@@ -19,13 +19,6 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Sms.Redis", "Sms.Redis\Sms.
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Sms.Test", "Sms.Test\Sms.Test.csproj", "{5E516D8E-EFA4-46E0-A5F2-BC1064C7989D}"
 EndProject
-Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = ".nuget", ".nuget", "{6776F266-4D41-4883-95DC-E2B8C1C57A82}"
-	ProjectSection(SolutionItems) = preProject
-		.nuget\NuGet.Config = .nuget\NuGet.Config
-		.nuget\NuGet.exe = .nuget\NuGet.exe
-		.nuget\NuGet.targets = .nuget\NuGet.targets
-	EndProjectSection
-EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "VersionInfo", "VersionInfo", "{B90ABCE9-BB85-4AD4-8FF1-03BC5C5A37E6}"
 	ProjectSection(SolutionItems) = preProject
 		Sms\Properties\AssemblyInfo.cs = Sms\Properties\AssemblyInfo.cs

@@ -7,19 +7,20 @@ using Sms.Messaging;
 
 namespace Sms.Aws
 {
-    public class AwsSqsMessageSender : IMessageSender<SmsMessage>, IDisposable
+    public class AwsSqsMessageSink : IMessageSink, IDisposable
     {
         private AmazonSQSClient client;
         private string queueUrl { get; set; }
 
-        public AwsSqsMessageSender()
-        {
+        public string QueueName { get; private set; }
+        public string ProviderName { get; private set; }
 
-        }
-
-        public AwsSqsMessageSender(string queueName)
+        public AwsSqsMessageSink(string provideName, string queueName)
         {
             if (queueName == null) throw new ArgumentNullException("queueName");
+
+            QueueName = queueName;
+            ProviderName = provideName;
 
             client = ClientFactory.Create();
             queueUrl = client.GetQueueUrl(queueName);

@@ -13,12 +13,12 @@ namespace Sms.Messaging
 
         private static readonly SmsFactory Instance = new SmsFactory();
 
-        public static IMessageSender<SmsMessage> Sender(string provider, string queueName)
+        public static IMessageSink Sender(string provider, string queueName)
         {
             return Instance.GetFactory(provider).Sender(queueName);
         }
 
-        public static IReceiver<SmsMessage> Receiver(string provider, string url)
+        public static IReceiver Receiver(string provider, string url)
         {
             return Instance.GetFactory(provider).Receiver(url);
         }
