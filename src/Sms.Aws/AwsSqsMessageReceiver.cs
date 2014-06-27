@@ -9,9 +9,8 @@ namespace Sms.Aws
 {
     public class AwsSqsMessageReceiver : IReceiver, IDisposable
     {
-        private readonly string queueName;
         private AmazonSQSClient client;
-        private string queueUrl;
+        private readonly string queueUrl;
 
         //public bool Receiving { get; private set; }
 

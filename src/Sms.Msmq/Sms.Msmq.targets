@@ -7,10 +7,11 @@
       <PackageFile Include=" $(OutDir)$(ProjectName)*.nupkg" />
     </ItemGroup>
 
-    <Message Text="Nuget Packing: $(NuGetExePath) pack $(ProjectPath) -Build -OutputDirectory $(TargetDir) "
+		
+    <Message Text="Nuget Packing: $(NuGetExePath) pack $(ProjectPath) -Build -OutputDirectory $(TargetDir)"
               Importance="high" />
     
-    <Exec Command="$(NuGetExePath) pack $(ProjectPath) -OutputDirectory $(TargetDir) -Properties Configuration=Release"/>
+    <Exec Command="$(MSBuildStartupDirectory)\$(NuGetExePath) pack $(ProjectPath) -OutputDirectory $(TargetDir) -Properties Configuration=Release"/>
 
 
     <ItemGroup>
@@ -39,7 +40,7 @@
       <PackageFile Include=" $(OutDir)$(ProjectName)*.nupkg" />
     </ItemGroup>
 
-    <Exec Command="$(NuGetExePath) push %(PackageFile.Identity)"  ContinueOnError="true"/>
+    <Exec Command="$(MSBuildStartupDirectory)\$(NuGetExePath) push %(PackageFile.Identity)"  ContinueOnError="true"/>
 
   </Target>
 
