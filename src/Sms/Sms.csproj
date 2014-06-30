@@ -33,19 +33,12 @@
     <Reference Include="System" />
     <Reference Include="System.Configuration" />
     <Reference Include="System.Core" />
-    <Reference Include="System.Xml.Linq" />
-    <Reference Include="System.Data.DataSetExtensions" />
     <Reference Include="Microsoft.CSharp" />
     <Reference Include="System.Data" />
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Defaults.cs" />
-    <Compile Include="Logging\ConsoleLogger.cs" />
-    <Compile Include="Logging\ILog.cs" />
-    <Compile Include="Logging\LogExtensions.cs" />
-    <Compile Include="Logging\LogManager.cs" />
-    <Compile Include="Logging\MultiLogger.cs" />
     <Compile Include="Router\Configuration.cs" />
     <Compile Include="Services\ISerializerFactory.cs" />
     <Compile Include="Logger.cs" />

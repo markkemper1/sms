@@ -4,7 +4,6 @@ using System.Linq;
 using Sms.Messaging;
 using Sms.Routing;
 using Sms.Services;
-using Sms.Logging;
 
 namespace Sms
 {
@@ -160,8 +159,6 @@ namespace Sms
              };
         }
 
-        private readonly static ILog log = LogManager.Get<ServiceReceiverTask>();
-
         private void HandleMessage(MessageResult messageResult)
         {
             if (!messageResult.Item.Headers.ContainsKey(RouterSettings.ServiceNameHeaderKey))
@@ -184,7 +181,7 @@ namespace Sms
             catch (Exception ex)
             {
                 errorSink.Send(messageResult.Item);
-                log.Error("An error occured in the handler: " + ex + " message has been placed on the error queue");
+                Logger.Error("An error occured in the handler: " + ex + " message has been placed on the error queue");
             }
 
             messageResult.Success();
