@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Linq;
+using System.Text;
 using System.Threading;
 using Amazon.SQS;
 using Amazon.SQS.Model;
@@ -36,7 +37,9 @@ namespace Sms.Aws
 
                 var sendRequest = new SendMessageRequest();
 
-                sendRequest.MessageBody = m.Body;
+                var bytes = Encoding.UTF8.GetBytes(m.Body);
+                sendRequest.MessageBody = Convert.ToBase64String(bytes);
+
                 sendRequest.QueueUrl = queueUrl;
 
                 sendRequest.MessageAttributes.Add(Config.ToAttributename, new MessageAttributeValue()

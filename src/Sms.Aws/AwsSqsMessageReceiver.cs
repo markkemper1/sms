@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Net;
+using System.Text;
 using Amazon.SQS;
 using Amazon.SQS.Model;
 using Sms.Messaging;
@@ -71,10 +72,12 @@ namespace Sms.Aws
 
                 }
 
+                var body = Encoding.UTF8.GetString(Convert.FromBase64String(awsMessage.Body));
+
                 var message = new SmsMessageContent
                 {
                     To = awsMessage.MessageAttributes[Config.ToAttributename].StringValue,
-                    Body = awsMessage.Body,
+                    Body = body,
                     HeaderKeys = headerKeys.ToArray(),
                     HeaderValues = headerValues.ToArray()
                 }.ToMessage();
