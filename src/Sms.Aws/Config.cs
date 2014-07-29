@@ -18,9 +18,9 @@ namespace Sms.Aws
             return new AppSettingItem(key, value);
         }
 
-        public const string ToAttributename ="To";
-        public const string HeaderKeysAttributename ="To";
-        public const string HeaderValuesAttributename ="To";
+        public const string ToAttributename ="to";
+        public const string HeaderKeysAttributename ="headerskey";
+        public const string HeaderValuesAttributename ="headervalues";
 
         public class AppSettingItem
         {

@@ -20,7 +20,7 @@ namespace Sms.Aws
                 if (queueUrls.ContainsKey(queueName))
                     return queueUrls[queueName];
 
-                var response = client.CreateQueue(new CreateQueueRequest()
+            var response = client.CreateQueue(new CreateQueueRequest()
                 {
                     QueueName = queueName
                 });

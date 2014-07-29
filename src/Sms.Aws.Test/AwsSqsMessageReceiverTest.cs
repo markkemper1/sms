@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Diagnostics;
 using System.Threading;
 using System.Threading.Tasks;
@@ -14,7 +15,7 @@ namespace Sms.Aws.Test
         [Test]
         public void should_send_receive_test_message()
         {
-            var queueName = @"SomeTestName";
+            var queueName = @"SomeTestName1";
 
 
             var recever = new ReceiveTask(new AwsSqsMessageReceiver(AwsSqsFactory.ProviderName, queueName), x => x.Success());
@@ -28,7 +29,15 @@ namespace Sms.Aws.Test
 
             var sender = new AwsSqsMessageSink(AwsSqsFactory.ProviderName, queueName);
 
-            sender.Send(new SmsMessage("http://test.sta1.com", "hello world"));
+            var message = new SmsMessage("samplewithheaders", "hello world", new Dictionary<string, string>()
+            {
+                {"smsrouterserviceName", "TestServiceMessage"},
+                {"#($&^*KLJSDFKLDFmsrouterserviceName", "TestSerSDFKLDFmsrouterseviceMessage"},
+                {"SDLKJD)(JK>LDSeName", "TestServic)(JK>LDSeNeMessage"},
+                {"iceName", "TestServiceMessage"},
+            });
+
+            sender.Send(message);
             sender.Send(new SmsMessage("http://test.sta1.com", "hello world"));
             sender.Send(new SmsMessage("http://test.sta1.com", "hello world"));
 
@@ -37,6 +46,18 @@ namespace Sms.Aws.Test
             recever = new ReceiveTask(new AwsSqsMessageReceiver(AwsSqsFactory.ProviderName, queueName), x =>
             {
                 i++;
+
+                if (x.Item.ToAddress == "samplewithheaders")
+                {
+                    Console.WriteLine(String.Join(", ", x.Item.Headers.Keys));
+
+                    Assert.That(x.Item.Headers["smsrouterserviceName"], Is.EqualTo(message.Headers["smsrouterserviceName"]));
+                    Assert.That(x.Item.Headers["#($&^*KLJSDFKLDFmsrouterserviceName"], Is.EqualTo(message.Headers["#($&^*KLJSDFKLDFmsrouterserviceName"]));
+                    Assert.That(x.Item.Headers["SDLKJD)(JK>LDSeName"], Is.EqualTo(message.Headers["SDLKJD)(JK>LDSeName"]));
+                    Assert.That(x.Item.Headers["iceName"], Is.EqualTo(message.Headers["iceName"]));
+
+                }
+
                 x.Success();
             });
 

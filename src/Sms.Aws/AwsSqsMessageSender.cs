@@ -33,34 +33,43 @@ namespace Sms.Aws
 
             while (tryNo < 4)
             {
+
+                var sendRequest = new SendMessageRequest();
+
+                sendRequest.MessageBody = m.Body;
+                sendRequest.QueueUrl = queueUrl;
+
+                sendRequest.MessageAttributes.Add(Config.ToAttributename, new MessageAttributeValue()
+                {
+                    DataType = "String",
+                    StringValue = m.To
+                });
+
+                if (m.HeaderKeys.Any())
+                {
+                    int i = 0;
+                    foreach (var header in m.HeaderKeys)
+                    {
+                        sendRequest.MessageAttributes.Add(Config.HeaderKeysAttributename +  i, new MessageAttributeValue()
+                        {
+                            DataType = "String",
+                            StringValue = header
+                        });
+                        i++;
+                    }
+                    i = 0;
+                    foreach (var header in m.HeaderValues)
+                    {
+                        sendRequest.MessageAttributes.Add(Config.HeaderValuesAttributename  + i, new MessageAttributeValue()
+                        {
+                            DataType = "String",
+                            StringValue = header
+                        });
+                        i++;
+                    }
+                }
                 try
                 {
-                    var sendRequest = new SendMessageRequest();
-
-                    sendRequest.MessageBody = m.Body;
-                    sendRequest.QueueUrl = queueUrl;
-
-                    sendRequest.MessageAttributes.Add(Config.ToAttributename, new MessageAttributeValue()
-                    {
-                        DataType = "String",
-                        StringValue = m.To
-                    });
-
-                    if (m.HeaderKeys.Any())
-                    {
-                        sendRequest.MessageAttributes.Add(Config.HeaderKeysAttributename, new MessageAttributeValue()
-                        {
-                            DataType = "String",
-                            StringListValues = m.HeaderKeys.ToList()
-                        });
-
-                        sendRequest.MessageAttributes.Add(Config.HeaderValuesAttributename, new MessageAttributeValue()
-                        {
-                            DataType = "String",
-                            StringListValues = m.HeaderValues.ToList()
-                        });
-                    }
-
 
                     client.SendMessage(sendRequest);
                     return;

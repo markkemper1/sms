@@ -37,7 +37,7 @@ namespace Sms.Aws
                     MaxNumberOfMessages = 1,
                     QueueUrl = queueUrl,
                     WaitTimeSeconds = timeout.HasValue ? (int) timeout.Value.TotalSeconds : 0,
-                    MessageAttributeNames = new List<string> {Config.ToAttributename, Config.HeaderKeysAttributename, Config.HeaderValuesAttributename}
+                    MessageAttributeNames = new List<string>{"All"}
                 };
 
                 var raw = client.ReceiveMessage(request);
@@ -54,12 +54,29 @@ namespace Sms.Aws
                 if (!awsMessage.MessageAttributes.ContainsKey(Config.ToAttributename))
                     throw new InvalidOperationException("The Message is missing the To Attribute");
 
+
+                var headerKeys = new List<string>();
+                var headerValues = new List<string>();
+
+                for (int i = 0; i < 100; i++)
+                {
+                    var key = Config.HeaderKeysAttributename + i;
+                    var valueKey = Config.HeaderValuesAttributename +  i;
+
+                    if(!awsMessage.MessageAttributes.ContainsKey(key))
+                        break;
+
+                    headerKeys.Add(awsMessage.MessageAttributes[key].StringValue);
+                    headerValues.Add(awsMessage.MessageAttributes[valueKey].StringValue);
+
+                }
+
                 var message = new SmsMessageContent
                 {
-                    To = awsMessage.MessageAttributes[Config.HeaderKeysAttributename].StringValue,
+                    To = awsMessage.MessageAttributes[Config.ToAttributename].StringValue,
                     Body = awsMessage.Body,
-                    HeaderKeys = awsMessage.MessageAttributes.ContainsKey(Config.HeaderKeysAttributename) ? awsMessage.MessageAttributes[Config.HeaderKeysAttributename].StringListValues.ToArray() : null,
-                    HeaderValues = awsMessage.MessageAttributes.ContainsKey(Config.HeaderValuesAttributename) ? awsMessage.MessageAttributes[Config.HeaderValuesAttributename].StringListValues.ToArray() : null
+                    HeaderKeys = headerKeys.ToArray(),
+                    HeaderValues = headerValues.ToArray()
                 }.ToMessage();
 
 
