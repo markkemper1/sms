@@ -22,10 +22,12 @@ namespace Sms.Routing.Test
 
         private RouterSink CreateRouter()
         {
-            return new RouterSink(Sender, new ServiceDefinitionRegistry(), new SerializerFactory());
+	        var serializerFactory = SerializerFactory.CreateEmpty();
+	        serializerFactory.Register(new JsonSerializer());
+	        return new RouterSink(Sender, new ServiceDefinitionRegistry(), serializerFactory);
         }
 
-        [Test]
+	    [Test]
         public void send_should_send_message_via_broker_send_queue()
         {
             var target = CreateRouter();

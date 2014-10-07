@@ -47,6 +47,7 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="Setup.cs" />
     <Compile Include="Messaging\BrokerTest.cs" />
     <Compile Include="Messaging\TestReciever.cs" />
     <Compile Include="Messaging\MsmqMessageSenderTest.cs" />

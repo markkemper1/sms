@@ -5,38 +5,52 @@ using Sms.Internals;
 
 namespace Sms.Services
 {
-    public class SerializerFactory : ISerializerFactory
-    {
-        private Dictionary<string, ISerializer> serializers;
+	public class SerializerFactory : ISerializerFactory
+	{
+		private readonly Dictionary<string, ISerializer> serializers;
 
-        static readonly object LockMe = new object();
+		private static readonly object LockMe = new object();
 
-        public ISerializer Get(string provider)
-        {
-            return GetSeralizer(provider);
-        }
+		private SerializerFactory()
+		{
+			serializers = new Dictionary<string, ISerializer>();
+		}
 
-        private ISerializer GetSeralizer(string provider)
-        {
-            if (serializers == null) CreateSerializers();
+		public SerializerFactory(IEnumerable<ISerializer> serializers)
+		{
+			if (serializers == null) throw new ArgumentNullException("serializers");
 
-            if (!serializers.ContainsKey(provider))
-                throw new ArgumentException("The serializer is not supported: " + provider);
+			this.serializers = serializers.ToDictionary(x => x.Name, x => x);
+		}
 
-            return serializers[provider];
-        }
+		public static SerializerFactory CreateEmpty()
+		{
+			return new SerializerFactory();
+		}
 
-        private void CreateSerializers()
-        {
-            if (serializers != null) return;
+		public void Register(ISerializer serializer)
+		{
+			if (serializer == null) throw new ArgumentNullException("serializer");
+			serializers.Add(serializer.Name, serializer);
+		}
 
-            lock (LockMe)
-            {
-                if (serializers != null) return;
-                serializers = GenericFactory.FindAndBuild<ISerializer>().ToDictionary(x => x.Name, x => x);
-            }
-        }
+		public ISerializer Get(string provider)
+		{
+			return GetSeralizer(provider);
+		}
+
+		private ISerializer GetSeralizer(string provider)
+		{
+			if (serializers == null)
+				throw new InvalidOperationException("No serializers have been configured.: " + provider); ;
+
+			if (!serializers.ContainsKey(provider))
+				throw new ArgumentException("The serializer is not supported: " + provider);
+
+			return serializers[provider];
+		}
 
 
-    }
+
+	}
 }

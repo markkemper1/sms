@@ -6,10 +6,8 @@ using System.Threading.Tasks;
 using NUnit.Framework;
 using Sms.Msmq;
 using Sms.Router;
-using Sms.Routing;
-using Sms.RoutingService;
 
-namespace Sms.Services.Test
+namespace Sms.Test.Services
 {
     [TestFixture]
     public class SerivceTaskReceiverTest

@@ -17,7 +17,7 @@ namespace Sms
         {
             this.router = router ?? SmsFactory.Sender(RouterSettings.ProviderName, RouterSettings.SendQueueName);
             this.registry = registry ?? new ServiceDefinitionRegistry();
-            this.serializerFactory = serializerFactory ?? new SerializerFactory();
+            this.serializerFactory = serializerFactory ?? SerializerFactory.CreateEmpty();
         }
 
         public void Send<T>(T request) where T : class, new()
@@ -75,7 +75,8 @@ namespace Sms
         {
             // Explicit static constructor to tell C# compiler not to mark type as beforefieldinit
             static DefaultRouter() { }
-            internal static readonly RouterSink Item = new RouterSink( SmsFactory.Sender(RouterSettings.ProviderName, RouterSettings.SendQueueName), new ServiceDefinitionRegistry(), new SerializerFactory());
+            internal static readonly RouterSink Item = new RouterSink( SmsFactory.Sender(RouterSettings.ProviderName, RouterSettings.SendQueueName), 
+				Defaults.ServiceDefinitionRegistry, Defaults.SerializerFactory);
         }
     }
 }
