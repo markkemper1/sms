@@ -25,7 +25,7 @@ namespace Sms.Router
 		private DateTime lastQueryTimeUTc = DateTime.MinValue;
 
 		public RdsBasedConfiguration(Func<IDbConnection> getConnection,
-			string endPointTableName = "sms_router_endpoing",
+			string endPointTableName = "sms_router_endpoint",
 			string endPointMessageTypeColName = "MessageType",
 			string endPointProviderNameColName = "ProviderName",
 			string endPointQueueIdentifierColName = "QueueIdentifier",
