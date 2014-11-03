@@ -15,7 +15,7 @@ namespace Sms.RoutingService
         {
             SetUpLogging();
 
-            var router = new RouterService();
+            var router = new RouterService(FileBasedConfiguration.LoadConfiguration());
             router.Start();
 
             Console.WriteLine("Press the any key to exit");

@@ -22,5 +22,6 @@ namespace Sms.Messaging
 
         public string ToAddress { get; set; }
         public string Body { get; private set; }
+
     }
 }

@@ -2,9 +2,9 @@ using System;
 using DotNetConfigHelper;
 
 [assembly: WebActivatorEx.PreApplicationStartMethod(
-    typeof(Sms.Aws.Test.App_Start.DotNetConfigHelperStartup), "PreStart")]
+    typeof(Sms.Test.App_Start.DotNetConfigHelperStartup), "PreStart")]
 
-namespace Sms.Aws.Test.App_Start {
+namespace Sms.Test.App_Start {
     public static class DotNetConfigHelperStartup {
         public static void PreStart()
         {

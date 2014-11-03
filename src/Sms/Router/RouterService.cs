@@ -1,298 +1,249 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Collections.Specialized;
-using System.Configuration;
+using System.Linq;
 using Sms.Messaging;
 using Sms.Routing;
 
 namespace Sms.Router
 {
-    public class RouterService
-    {
-       
-        private ReceiveTask sendQueueTask;
-        //private Task pipeMessages ;
+	public class RouterService
+	{
+		public const String ConfigureServiceEndpointAddress = "SmsRouter.Configure.Endpoint.Add";
+		public const String ConfigureServiceEndpointAddressRemove = "SmsRouter.Configure.Endpoint.Remove";
+		public const String ConfigureServiceMappingAddress= "SmsRouter.Configure.Mapping.Add";
+		public const String ConfigureServiceMappingAddressRemove = "SmsRouter.Configure.Mapping.Remove";
 
-        public RouterService()
-        {
-            Config = new Configuration();
-         
-            LoadConfiguration();
-        }
+		private ReceiveTask sendQueueTask;
+		//private Task pipeMessages ;
 
-        public Configuration Config { get; private set; }
+		public RouterService(IRouterConfiguration configuration)
+		{
+			this.Config = configuration;
+		}
 
+		public IRouterConfiguration Config { get; private set; }
 
-        private void LoadConfiguration()
-        {
-            var section = (NameValueCollection)ConfigurationManager.GetSection("ServiceConfiguration");
+		public void Start()
+		{
 
-            if (section == null)
-            {
-                Logger.Error("Configuration could not be read");
-                return;
-            }
+			//Process Errors
+			using (var errorQueue = SmsFactory.Receiver(RouterSettings.ProviderName, RouterSettings.SendErrorQueueName))
+			{
+				var errorErrors = new List<MessageResult>();
+				var errorSuccess = new List<MessageResult>();
 
-            if (section.Keys.Count == 0)
-            {
-                Logger.Error("Configuration does not contain any services, configuration key count == 0");
-                return;
-            }
+				while (true)
+				{
+					var error = errorQueue.Receive(TimeSpan.FromMilliseconds(0));
 
-            var services = new List<ServiceEndpoint>();
+					if (error == null)
+						break;
 
-            foreach (string key in section.Keys)
-            {
-                string value = section[key];
+					if (Config.Get(error.Item.ToAddress).Any())
+						errorSuccess.Add(error);
+					else
+						errorErrors.Add(error);
+				}
 
-                var valueSplit = value.Split(new[] { "://" }, 2, StringSplitOptions.RemoveEmptyEntries);
+				using (var reQueue = SmsFactory.Sender(RouterSettings.ProviderName, RouterSettings.SendQueueName))
+				{
+					foreach (var e in errorErrors)
+						e.Failed();
 
-                string provider = valueSplit[0];
-                string queueName = valueSplit[1];
+					foreach (var e in errorSuccess)
+					{
+						reQueue.Send(e.Item);
+						e.Success();
+					}
+				}
+			}
 
-                services.Add(new ServiceEndpoint()
-                    {
-                        MessageType = key,
-                        ProviderName = provider,
-                        QueueIdentifier = queueName
-                    });
-            }
+			//Listen on the send Queue and forward messages to the configured service.
+			sendQueueTask = new ReceiveTask(SmsFactory.Receiver(RouterSettings.ProviderName, RouterSettings.SendQueueName),
+													message =>
+													{
+														try
+														{
+															if (ProcessConfigurationMessages(message)) return;
 
-            Config.Load(services);
-        }
+															var configInfoList = Config.Get(message.Item.ToAddress);
 
-        public void Start()
-        {
+															bool atLeastOne = false;
 
-            //Process Errors
-            using (var errorQueue = SmsFactory.Receiver(RouterSettings.ProviderName, RouterSettings.SendErrorQueueName))
-            {
-                    var errorErrors = new List<MessageResult>();
-                    var errorSuccess = new List<MessageResult>();
+															foreach (var configInfo in configInfoList)
+															{
+																using (var sender = SmsFactory.Sender(configInfo.ProviderName, configInfo.QueueIdentifier))
+																{
+																	Console.WriteLine("Sending To: " + configInfo.QueueIdentifier);
+																	sender.Send(message.Item);
+																	message.Success();
+																}
+																atLeastOne = true;
+															}
 
-                while (true)
-                {
-                    var error = errorQueue.Receive(TimeSpan.FromMilliseconds(0));
+															if (!atLeastOne)
+															{
+																using (var sender = SmsFactory.Sender(ErrorConfig.ProviderName, ErrorConfig.QueueIdentifier))
+																{
+																	sender.Send(message.Item);
+																	message.Success();
+																}
+															}
+														}
+														catch (Exception ex)
+														{
+															Logger.Fatal("Exception", ex);
+															throw;
+														}
 
-                    if (error == null)
-                        break;
+													});
+			sendQueueTask.Start();
 
-                    if (Config.IsKnown(error.Item.ToAddress))
-                        errorSuccess.Add(error);
-                    else
-                        errorErrors.Add(error);
-                }
+		}
 
-                using (var reQueue = SmsFactory.Sender(RouterSettings.ProviderName, RouterSettings.SendQueueName))
-                {
-                    foreach (var e in errorErrors)
-                        e.Failed();
+		private bool ProcessConfigurationMessages(MessageResult message)
+		{
+			if (message.Item.ToAddress == ConfigureServiceEndpointAddress)
+			{
+				Config.Add(new ServiceEndpoint()
+				{
+					MessageType = message.Item.Headers["MessageType"],
+					ProviderName = message.Item.Headers["ProviderName"],
+					QueueIdentifier = message.Item.Headers["QueueIdentifier"]
+				});
 
-                    foreach (var e in errorSuccess)
-                    {
-                        reQueue.Send(e.Item);
-                        e.Success();
-                    }
-                }
-            }
+				message.Success();
+				return true;
+			}
 
+			if (message.Item.ToAddress == ConfigureServiceEndpointAddressRemove)
+			{
+				Config.Remove(new ServiceEndpoint()
+				{
+					MessageType = message.Item.Headers["MessageType"],
+					ProviderName = message.Item.Headers["ProviderName"],
+					QueueIdentifier = message.Item.Headers["QueueIdentifier"]
+				});
 
-            //Listen on the send Queue and forward messages to the configured service.
-            sendQueueTask = new ReceiveTask(SmsFactory.Receiver(RouterSettings.ProviderName, RouterSettings.SendQueueName),
-                                                    message =>
-                                                        {
-                                                            try
-                                                            {
-                                                                var configInfo = Config.IsKnown(message.Item.ToAddress) ? Config.Get(message.Item.ToAddress) : ErrorConfig;
+				message.Success();
+				return true;
+			}
 
-                                                                using (var sender = SmsFactory.Sender(configInfo.ProviderName, configInfo.QueueIdentifier))
-                                                                {
-                                                                    sender.Send(message.Item);
-                                                                    message.Success();
-                                                                }
-                                                            }
-                                                            catch (Exception ex)
-                                                            {
-                                                                Logger.Fatal("Exception", ex);
-                                                                throw;
-                                                            }
+			if (message.Item.ToAddress == ConfigureServiceMappingAddress)
+			{
+				Config.AddMapping(message.Item.Headers["FromType"], message.Item.Headers["ToType"]);
+				message.Success();
+				return true;
+			}
 
-                                                        });
-            sendQueueTask.Start();
-
-            ////Listen for the next message queue, Then setup a receive (if needed) and forward onto the unique queue provided..
-            //nextMessageQueueTask = new ReceiveTask<SmsMessage>(SmsFactory.Receiver(RouterSettings.ProviderName, RouterSettings.NextMessageQueueName), (message) =>
-            //{
-            //    try
-            //    {
-            //        string queueIdentifier = RouterSettings.ReceiveMessageQueueNamePrefix + message.Item.Headers[RouterSettings.ServiceNameHeaderKey];
-
-            //        var configInfo = Config.Get(message.Item.ToAddress);
-
-            //        if (!receivers.ContainsKey(queueIdentifier))
-            //        {
-            //            var receiver = SmsFactory.Receiver(configInfo.ProviderName, configInfo.QueueIdentifier);
-            //            var toQueue = SmsFactory.Sender(RouterSettings.ProviderName, queueIdentifier);
-
-            //            receivers[queueIdentifier] = new ProxyMessageReceiver(receiver, toQueue, TimeSpan.FromMilliseconds(10));
-            //        }
-
-            //        Logger.Debug("ReceiveeTask: setting piping receiver active for {0},", queueIdentifier);
-            //        receivers[queueIdentifier].IsActive = true;
-
-            //        message.Success();
-            //    }
-            //    catch (Exception ex)
-            //    {
-            //        log.Fatal("Exception", ex);
-            //        throw;
-            //    }
-            //});
-
-            //nextMessageQueueTask.Start();
-
-            //pipeMessages = Task.Factory.StartNew(() =>{
-            //                               try
-            //                               {
-            //                                   while (!stop)
-            //                                   {
-            //                                       bool hasWork = false;
-            //                                       foreach (var item in receivers)
-            //                                       {
-            //                                           hasWork = item.Value.CheckOne() || hasWork;
-            //                                       }
-
-            //                                       Thread.Sleep(hasWork ? 10 : 200);
-            //                                   }
-            //                               }
-            //                               catch (Exception ex)
-            //                               {
-            //                                   log.Fatal("Exception", ex);
-            //                                   throw;
-            //                               }
-            //});
-
-            //while (pipeMessages.Status == TaskStatus.WaitingToRun || pipeMessages.Status == TaskStatus.Created || pipeMessages.Status == TaskStatus.WaitingForActivation || 
-            //       nextMessageQueueTask.Status == TaskStatus.WaitingToRun || nextMessageQueueTask.Status == TaskStatus.Created || nextMessageQueueTask.Status == TaskStatus.WaitingForActivation || 
-            //       sendQueueTask.Status == TaskStatus.WaitingToRun || sendQueueTask.Status == TaskStatus.Created || sendQueueTask.Status == TaskStatus.WaitingForActivation
-            //)
-            //{
-            //    var message = String.Format("Something isn't running. 1. pipeMessages:  {0}, nextMessageQueue: {1}, sendQueue: {2} ", pipeMessages.Status.ToString(), nextMessageQueueTask.Status.ToString(), sendQueueTask.Status.ToString());
-            //    log.Info(message);
-
-            //    Thread.Sleep(1000);
-            //}
+			if (message.Item.ToAddress == ConfigureServiceMappingAddressRemove)
+			{
+				Config.RemoveMapping(message.Item.Headers["FromType"], message.Item.Headers["ToType"]);
+				message.Success();
+				return true;
+			}
+			return false;
+		}
 
 
+		private static readonly ServiceEndpoint ErrorConfig = new ServiceEndpoint()
+			{
+				ProviderName = RouterSettings.ProviderName,
+				MessageType = "Router",
+				QueueIdentifier = RouterSettings.SendErrorQueueName
+			};
 
-            //if (pipeMessages.Status != TaskStatus.Running || nextMessageQueueTask.Status != TaskStatus.Running || sendQueueTask.Status != TaskStatus.Running)
-            //{
-            //    var message = String.Format("Something isn't running. 1. pipeMessages:  {0}, nextMessageQueue: {1}, sendQueue: {2} ", pipeMessages.Status.ToString(), nextMessageQueueTask.Status.ToString(), sendQueueTask.Status.ToString());
-            //    var exception = this.Stop();
-            //    throw new Exception(message , exception);
-            //}
-        }
-
-        
-
-        private static readonly ServiceEndpoint ErrorConfig = new ServiceEndpoint()
-            {
-                ProviderName = RouterSettings.ProviderName,
-                MessageType = "Router",
-                QueueIdentifier = RouterSettings.SendErrorQueueName
-            };
-
-//        private readonly ConcurrentDictionary<string, ProxyMessageReceiver> receivers = new ConcurrentDictionary<string, ProxyMessageReceiver>();
+		//        private readonly ConcurrentDictionary<string, ProxyMessageReceiver> receivers = new ConcurrentDictionary<string, ProxyMessageReceiver>();
 
 
-        public Exception Stop()
-        {
-            Exception ex = null;
-            var exceptions = new List<Exception>();
+		public Exception Stop()
+		{
+			Exception ex = null;
+			var exceptions = new List<Exception>();
 
-            if (sendQueueTask != null)
-            {
-                ex = sendQueueTask.Stop();
-                
-                if(ex != null) Logger.Fatal("Send Queue Ex:", ex);
+			if (sendQueueTask != null)
+			{
+				ex = sendQueueTask.Stop();
 
-                sendQueueTask.Dispose();
-            }
+				if (ex != null) Logger.Fatal("Send Queue Ex:", ex);
 
-            if(ex != null)
-                exceptions.Add(ex);
+				sendQueueTask.Dispose();
+			}
 
-            //ex = null;
+			if (ex != null)
+				exceptions.Add(ex);
 
-            //if (nextMessageQueueTask != null)
-            //{
-            //    ex = nextMessageQueueTask.Stop();
-            //    log.Fatal("Next Message Queue Ex:", ex);
-            //    nextMessageQueueTask.Dispose();
-            //}
+			//ex = null;
 
-            //if (ex != null)
-            //    exceptions.Add(ex);
+			//if (nextMessageQueueTask != null)
+			//{
+			//    ex = nextMessageQueueTask.Stop();
+			//    log.Fatal("Next Message Queue Ex:", ex);
+			//    nextMessageQueueTask.Dispose();
+			//}
 
-            //ex = null;
+			//if (ex != null)
+			//    exceptions.Add(ex);
 
-            //try
-            //{
-            //    Task.WaitAll(pipeMessages);
-            //}
-            //catch (AggregateException ae)
-            //{
-            //    log.Fatal("Piping Task:", ex);
-            //    exceptions.Add(ae);
-            //}
-            return new AggregateException(exceptions);
-        }
-    }
+			//ex = null;
 
-    //public class ProxyMessageReceiver : IDisposable
-    //{
-    //    private readonly TimeSpan timeSpan;
-    //    public IReceiver Receiver { get; set; }
-    //    public IMessageSink ToQueue { get; set; }
+			//try
+			//{
+			//    Task.WaitAll(pipeMessages);
+			//}
+			//catch (AggregateException ae)
+			//{
+			//    log.Fatal("Piping Task:", ex);
+			//    exceptions.Add(ae);
+			//}
+			return new AggregateException(exceptions);
+		}
+	}
 
-    //    public ProxyMessageReceiver(IReceiver receiver, IMessageSink toQueue, TimeSpan timeSpan)
-    //    {
-    //        this.timeSpan = timeSpan;
-    //        Receiver = receiver;
-    //        ToQueue = toQueue;
-    //    }
-    //    public bool IsActive { get; set; }
+	//public class ProxyMessageReceiver : IDisposable
+	//{
+	//    private readonly TimeSpan timeSpan;
+	//    public IReceiver Receiver { get; set; }
+	//    public IMessageSink ToQueue { get; set; }
 
-    //    public bool CheckOne()
-    //    {
-    //        Logger.Debug("ProxyMessageReceiver: Checking for message on {0},", Receiver.QueueName);
+	//    public ProxyMessageReceiver(IReceiver receiver, IMessageSink toQueue, TimeSpan timeSpan)
+	//    {
+	//        this.timeSpan = timeSpan;
+	//        Receiver = receiver;
+	//        ToQueue = toQueue;
+	//    }
+	//    public bool IsActive { get; set; }
 
-    //        if (!IsActive)
-    //        {
-    //            Logger.Debug("ProxyMessageReceiver: Not active. IsActive: {0}", IsActive);
-    //            return false;
-    //        }
+	//    public bool CheckOne()
+	//    {
+	//        Logger.Debug("ProxyMessageReceiver: Checking for message on {0},", Receiver.QueueName);
 
-    //        var message = Receiver.Receive(timeSpan);
+	//        if (!IsActive)
+	//        {
+	//            Logger.Debug("ProxyMessageReceiver: Not active. IsActive: {0}", IsActive);
+	//            return false;
+	//        }
 
-    //        if (message != null)
-    //        {
-    //            Logger.Debug("ProxyMessageReceiver: Received Message on Queue: {0}", Receiver.QueueName);
-    //            ToQueue.Send(message.Item);
-    //            message.Success();
-    //            IsActive = false;
-    //            return true;
-    //        }
+	//        var message = Receiver.Receive(timeSpan);
 
-    //        Logger.Debug("PipingMessageReceiver: No message received. QueueName: {0}", Receiver.QueueName);
+	//        if (message != null)
+	//        {
+	//            Logger.Debug("ProxyMessageReceiver: Received Message on Queue: {0}", Receiver.QueueName);
+	//            ToQueue.Send(message.Item);
+	//            message.Success();
+	//            IsActive = false;
+	//            return true;
+	//        }
 
-    //        return false;
-    //    }
+	//        Logger.Debug("PipingMessageReceiver: No message received. QueueName: {0}", Receiver.QueueName);
 
-    //    public void Dispose()
-    //    {
-    //        Receiver.Dispose();
-    //        ToQueue.Dispose();
-    //    }
-    //}
+	//        return false;
+	//    }
+
+	//    public void Dispose()
+	//    {
+	//        Receiver.Dispose();
+	//        ToQueue.Dispose();
+	//    }
+	//}
 }

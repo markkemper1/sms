@@ -1,5 +1,8 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Configuration;
+using System.Data;
+using System.Data.Common;
 using System.Diagnostics;
 using System.Threading;
 using NUnit.Framework;
@@ -10,12 +13,25 @@ using Sms.Router;
 namespace Sms.RoutingServiceTest
 {
 	[TestFixture]
-	public class RouterServiceTest
+	public class RdsServiceTest
 	{
+		private RdsBasedConfiguration rdsConfig;
+
 		[SetUp]
 		public void SetUp()
 		{
 			Defaults.MessagingFactories.Add(new MsmqFactory());
+			var config = ConfigurationManager.ConnectionStrings[0];
+
+			Func<IDbConnection> getConnection = () =>
+			{
+				DbProviderFactory dbProvider = DbProviderFactories.GetFactory(config.ProviderName);
+				var connection = dbProvider.CreateConnection();
+				connection.ConnectionString = config.ConnectionString;
+				return connection;
+			};
+			rdsConfig = new RdsBasedConfiguration(getConnection, "TestRdsBasedConfiguration", "mt", "pn", "queue");
+			rdsConfig.EnsureTableExists();
 		}	
 
 
@@ -33,17 +49,16 @@ namespace Sms.RoutingServiceTest
 
 			receive.Start();
 
-			FileBasedConfiguration loadFileBasedConfiguration = FileBasedConfiguration.LoadConfiguration();
-			var router = new RouterService(loadFileBasedConfiguration);
-			loadFileBasedConfiguration.Load(new List<ServiceEndpoint>()
-                {
-                    new ServiceEndpoint()
-                        {
-                            ProviderName = "msmq",
-							MessageType = "testService",
-                            QueueIdentifier = "helloWorldService"
-                        }
-                });
+			var router = new RouterService(rdsConfig);
+			var serviceEndpoint = new ServiceEndpoint()
+			{
+				ProviderName = "msmq",
+				MessageType = "testService",
+				QueueIdentifier = "helloWorldService"
+			};
+			router.Config.Add(
+                    serviceEndpoint
+                );
 
 			router.Start();
 
@@ -79,13 +94,7 @@ namespace Sms.RoutingServiceTest
 		{
 			int receivedCount = 0;
 
-			var receiver1 = new ReceiveTask(SmsFactory.Receiver("msmq", "helloWorldService1"), message =>
-			{
-				receivedCount++;
-				message.Success();
-			});
-
-			var receiver2 = new ReceiveTask(SmsFactory.Receiver("msmq", "helloWorldService2"), message =>
+			var receiver1 = new ReceiveTask(SmsFactory.Receiver("msmq", "helloWordService"), message =>
 			{
 				receivedCount++;
 				message.Success();
@@ -93,38 +102,29 @@ namespace Sms.RoutingServiceTest
 
 
 			receiver1.Start();
-			receiver2.Start();
 
-			FileBasedConfiguration loadFileBasedConfiguration = FileBasedConfiguration.LoadConfiguration();
-			var router = new RouterService(loadFileBasedConfiguration);
-			loadFileBasedConfiguration.Load(new List<ServiceEndpoint>()
-			{
-				new ServiceEndpoint()
-				{
-					ProviderName = "msmq",
-					MessageType = "testService",
-					QueueIdentifier = "helloWorldService1"
-				},
-				new ServiceEndpoint()
-				{
-					ProviderName = "msmq",
-					MessageType = "testService",
-					QueueIdentifier = "helloWorldService2"
-				}
-			});
+			var router = new RouterService(rdsConfig);
+			
 
 			router.Start();
 
 			Thread.Sleep(1000);
 
-			RouterSink.Default.Send("testService", "Test me, hello?");
+			RouterSink.Default.ConfigureEndpoint("testService1", "msmq", "helloWordService");
+			RouterSink.Default.ConfigureEndpoint("testService2", "msmq", "helloWordService");
+			RouterSink.Default.ConfigureMapping("testService", "testService1");
+			RouterSink.Default.ConfigureMapping("testService", "testService2");
 
 			Thread.Sleep(2000);
+			
+			RouterSink.Default.Send("testService", "Test me, hello?");
+			
+			Thread.Sleep(2000);
+
 
 			router.Stop();
 
 			receiver1.Dispose();
-			receiver2.Dispose();
 
 			Thread.Sleep(2000);
 

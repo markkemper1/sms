@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using Sms.Messaging;
+using Sms.Router;
 using Sms.Routing;
 using Sms.Services;
 
@@ -12,7 +13,7 @@ namespace Sms
         private readonly IMessageSink router;
         private readonly IServiceDefinitionRegistry registry;
         private readonly ISerializerFactory serializerFactory;
-
+		
         public RouterSink(IMessageSink router =null, IServiceDefinitionRegistry registry = null, ISerializerFactory serializerFactory= null)
         {
             this.router = router ?? SmsFactory.Sender(RouterSettings.ProviderName, RouterSettings.SendQueueName);
@@ -25,7 +26,38 @@ namespace Sms
             this.Send(CreateMessage(request));
         }
 
+		public void ConfigureEndpoint<T>(string providerName, string queueName) where T : class, new()
+		{
+			var config = registry.Get<T>();
+			Send(new SmsMessage(RouterService.ConfigureServiceEndpointAddress, null, 
+				new Dictionary<string, string>(){
+					{"MessageType", config.RequestTypeName},
+					{"ProviderName", providerName},
+					{"QueueIdentifier", queueName},
+				} ));	
+		}
+
+		public void ConfigureEndpoint(string serviceName, string providerName, string queueName) 
+		{
+			Send(new SmsMessage(RouterService.ConfigureServiceEndpointAddress, null,
+				new Dictionary<string, string>(){
+					{"MessageType", serviceName},
+					{"ProviderName", providerName},
+					{"QueueIdentifier", queueName},
+				}));
+		}
+
+		public void ConfigureMapping(string fromType, string toType)
+		{
+			Send(new SmsMessage(RouterService.ConfigureServiceMappingAddress, null,
+				new Dictionary<string, string>(){
+					{"FromType", fromType},
+					{"ToType", toType}
+				}));
+		}
+
         public string ProviderName { get { return router.ProviderName; } }
+
         public string QueueName { get { return router.QueueName; } }
 
         public void Send(SmsMessage request) 
@@ -33,6 +65,11 @@ namespace Sms
             request.Headers[RouterSettings.ServiceNameHeaderKey] = request.ToAddress;
             router.Send(request);
         }
+
+		public void Send(string toService, string content)
+		{
+			Send(new SmsMessage(toService, content));
+		}
 
         public SmsMessage CreateMessage<T>(T request) where T : class, new()
         {

@@ -13,11 +13,13 @@ namespace Sms.Test.Services
     public class SerivceTaskReceiverTest
     {
         RouterService router;
+	    private FileBasedConfiguration fileBasedConfiguration;
 
-        [SetUp]
+	    [SetUp]
         public void SetUp()
         {
-            router = new RouterService();
+	        fileBasedConfiguration = FileBasedConfiguration.LoadConfiguration();
+			router = new RouterService(fileBasedConfiguration);
             Task.Factory.StartNew(router.Start);
         }
 
@@ -42,9 +44,9 @@ namespace Sms.Test.Services
             catch
             {
             }
-        
 
-            router.Config.Load(new List<ServiceEndpoint>()
+
+			fileBasedConfiguration.Load(new List<ServiceEndpoint>()
                 {
                     new ServiceEndpoint()
                         {

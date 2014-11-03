@@ -1,10 +1,8 @@
 ﻿using DotNetConfigHelper;
 using NUnit.Framework;
-using Sms.Messaging;
 using Sms.Msmq;
-using Sms.Services;
 
-namespace Sms.Test
+namespace Sms.RoutingServiceTest
 {
 	[SetUpFixture]
     public class Setup
@@ -13,7 +11,6 @@ namespace Sms.Test
 		public void register()
 		{
 			AppSettingsReplacer.Install(DotNetConfigHelper.ConfigProvider.CreateAndSetDefault());
-			Defaults.SerializerFactory.Register(new JsonSerializer());
 			Defaults.MessagingFactories.Add(new MsmqFactory());
 		}
     }

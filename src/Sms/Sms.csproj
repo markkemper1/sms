@@ -39,7 +39,9 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Defaults.cs" />
-    <Compile Include="Router\Configuration.cs" />
+    <Compile Include="Router\RdsBasedConfiguration.cs" />
+    <Compile Include="Router\IRouterConfiguration.cs" />
+    <Compile Include="Router\FileBasedConfiguration.cs" />
     <Compile Include="Services\ISerializerFactory.cs" />
     <Compile Include="Logger.cs" />
     <Compile Include="Router\RouterService.cs" />
