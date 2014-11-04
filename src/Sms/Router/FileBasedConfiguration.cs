@@ -13,13 +13,32 @@ namespace Sms.Router
 
 		public IEnumerable<ServiceEndpoint> Get(string serviceName)
 		{
-			if(services == null)
-				throw new InvalidOperationException("Service configuration not set, service name: " + serviceName);
+			lock (this)
+			{
+				if (services == null)
+					throw new InvalidOperationException("Service configuration not set, service name: " + serviceName);
 
-			if(!services.ContainsKey(serviceName))
-				yield break;
+				List<string> mappings;
+				if (serviceMapping.TryGetValue(serviceName, out mappings))
+				{
+					if (mappings.All(x => services.ContainsKey(x)))
+					{
+						foreach (var item in mappings)
+						{
+							yield return services[item];
+						}
+					}
+					else
+					{
+						yield break;
+					}
+				}
 
-			yield return services[serviceName];
+				if (!services.ContainsKey(serviceName))
+					yield break;
+
+				yield return services[serviceName];
+			}
 		}
 
 		public void Add(ServiceEndpoint service)

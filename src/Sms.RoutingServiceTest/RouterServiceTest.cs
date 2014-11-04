@@ -102,17 +102,19 @@ namespace Sms.RoutingServiceTest
 				new ServiceEndpoint()
 				{
 					ProviderName = "msmq",
-					MessageType = "testService",
+					MessageType = "testService1",
 					QueueIdentifier = "helloWorldService1"
 				},
 				new ServiceEndpoint()
 				{
 					ProviderName = "msmq",
-					MessageType = "testService",
+					MessageType = "testService2",
 					QueueIdentifier = "helloWorldService2"
 				}
 			});
 
+			loadFileBasedConfiguration.AddMapping("testService", "testService1");
+			loadFileBasedConfiguration.AddMapping("testService", "testService2");
 			router.Start();
 
 			Thread.Sleep(1000);

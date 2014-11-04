@@ -64,7 +64,7 @@ namespace Sms.Aws.Test
             recever.Start();
 
 
-            Thread.Sleep(1000);
+            Thread.Sleep(2000);
 
             recever.Stop();
 
