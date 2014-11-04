@@ -8,7 +8,7 @@ namespace Sms.Router
 {
 	public class FileBasedConfiguration : IRouterConfiguration
 	{
-		private Dictionary<string, ServiceEndpoint> services;
+		private Dictionary<string, ServiceEndpoint> services = new Dictionary<string, ServiceEndpoint>();
 		private Dictionary<string, List<string>> serviceMapping = new Dictionary<string, List<string>>();
 
 		public IEnumerable<ServiceEndpoint> Get(string serviceName)
