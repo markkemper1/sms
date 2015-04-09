@@ -82,11 +82,13 @@ namespace Sms.RoutingServiceTest
 			var receiver1 = new ReceiveTask(SmsFactory.Receiver("msmq", "helloWorldService1"), message =>
 			{
 				receivedCount++;
+				Console.WriteLine("Service 1 received a: " + message.Item.ToAddress);
 				message.Success();
 			});
 
 			var receiver2 = new ReceiveTask(SmsFactory.Receiver("msmq", "helloWorldService2"), message =>
 			{
+				Console.WriteLine("Service 2 received a: " + message.Item.ToAddress);
 				receivedCount++;
 				message.Success();
 			});
@@ -115,9 +117,10 @@ namespace Sms.RoutingServiceTest
 
 			loadFileBasedConfiguration.AddMapping("testService", "testService1");
 			loadFileBasedConfiguration.AddMapping("testService", "testService2");
+			Thread.Sleep(1000);
 			router.Start();
 
-			Thread.Sleep(1000);
+			Thread.Sleep(2000);
 
 			RouterSink.Default.Send("testService", "Test me, hello?");
 
