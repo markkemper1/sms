@@ -74,7 +74,9 @@ namespace Sms.Router
 															{
 																using (var sender = SmsFactory.Sender(configInfo.ProviderName, configInfo.QueueIdentifier))
 																{
-																	sender.Send(new SmsMessage(configInfo.MessageType, message.Item.Body, message.Item.Headers));
+																	var headers = new Dictionary<string, string>(message.Item.Headers);
+																	headers[RouterSettings.ServiceNameHeaderKey] = configInfo.MessageType;
+																	sender.Send(new SmsMessage(configInfo.MessageType, message.Item.Body,headers));
 																	message.Success();
 																}
 																atLeastOne = true;

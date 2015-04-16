@@ -58,7 +58,10 @@ namespace Sms
 
             foreach (var requestType in allServices)
             {
-                this.Register(requestType.Key, requestType.Value, handlerFactory ?? Activator.CreateInstance);
+				foreach (var typeHandled in requestType.Value)
+				{
+					this.Register(requestType.Key, typeHandled, handlerFactory ?? Activator.CreateInstance);
+				}
             }
 
         }
@@ -70,18 +73,19 @@ namespace Sms
 
             foreach (var requestType in allServices)
             {
-                this.Register(requestType.Key, requestType.Value, handlerFactory ?? Activator.CreateInstance);
+	            foreach (var typeHandled in requestType.Value)
+	            {
+					this.Register(requestType.Key, typeHandled, handlerFactory ?? Activator.CreateInstance);
+	            }
             }
 
         }
 
-        private Type GetServiceType(Type type, Type handlerIntefaceType)
+        private IEnumerable<Type> GetServiceType(Type type, Type handlerIntefaceType)
         {
-
             foreach (var i in type.GetInterfaces())
                 if (i.IsGenericType && i.GetGenericTypeDefinition() == handlerIntefaceType)
-                    return i.GetGenericArguments()[0]; ;
-            return null;
+                    yield return i.GetGenericArguments()[0]; ;
         }
 
         public virtual void Start()
@@ -161,30 +165,38 @@ namespace Sms
 
         private void HandleMessage(MessageResult messageResult)
         {
-            if (!messageResult.Item.Headers.ContainsKey(RouterSettings.ServiceNameHeaderKey))
-                throw new InvalidOperationException("Cannot receive messages without a service name header key");
+	        try
+	        {
+		        if (!messageResult.Item.Headers.ContainsKey(RouterSettings.ServiceNameHeaderKey))
+			        throw new InvalidOperationException("Cannot receive messages without a service name header key");
 
-            var serviceName = messageResult.Item.Headers[RouterSettings.ServiceNameHeaderKey];
+		        var serviceName = messageResult.Item.Headers[RouterSettings.ServiceNameHeaderKey];
 
-            if (!registeredHandlers.ContainsKey(serviceName))
-                throw new InvalidOperationException(String.Format("Cannot receive the message type: {0} without registering a handler for the message type", serviceName));
+		        if (!registeredHandlers.ContainsKey(serviceName))
+			        throw new InvalidOperationException(String.Format("Cannot receive the message type: {0} without registering a handler for the message type", serviceName));
 
-            var registration = registeredHandlers[serviceName];
-            var serializer = registration.Serializer;
+		        var registration = registeredHandlers[serviceName];
+		        var serializer = registration.Serializer;
 
-            dynamic item = serializer.Deserialize(registration.MessageType, messageResult.Item.Body);
+		        dynamic item = serializer.Deserialize(registration.MessageType, messageResult.Item.Body);
 
-            try
-            {
-                registration.HandlerFactory().Process(item);
-            }
-            catch (Exception ex)
-            {
-                errorSink.Send(messageResult.Item);
-                Logger.Error("An error occured in the handler: " + ex + " message has been placed on the error queue");
-            }
+		        try
+		        {
+			        registration.HandlerFactory().Process(item);
+		        }
+		        catch (Exception ex)
+		        {
+			        errorSink.Send(messageResult.Item);
+			        Logger.Error("An unhanded exception occurred in the handler. Error: "  + ex + ", Service Name: "+ serviceName + " message has been placed on the error queue");
+		        }
+	        }
+			catch (Exception ex)
+			{
+				errorSink.Send(messageResult.Item);
+				Logger.Error("An general error occurred processing the message. Error: " + ex + " message has been placed on the error queue");
+			}
 
-            messageResult.Success();
+	        messageResult.Success();
         }
 
 
