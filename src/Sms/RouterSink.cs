@@ -28,14 +28,19 @@ namespace Sms
 
 		public void ConfigureEndpoint<T>(string providerName, string queueName) where T : class, new()
 		{
-			var config = registry.Get<T>();
-			Send(new SmsMessage(RouterService.ConfigureServiceEndpointAddress, null, 
-				new Dictionary<string, string>(){
+		    ConfigureEndpoint(typeof (T), providerName, queueName);
+		}
+
+        public void ConfigureEndpoint(Type type, string providerName, string queueName)
+        {
+            var config = registry.Get(type);
+            Send(new SmsMessage(RouterService.ConfigureServiceEndpointAddress, null,
+                new Dictionary<string, string>(){
 					{"MessageType", config.RequestTypeName},
 					{"ProviderName", providerName},
 					{"QueueIdentifier", queueName},
-				} ));	
-		}
+				}));
+        }
 
 		public void ConfigureEndpoint(string serviceName, string providerName, string queueName) 
 		{
