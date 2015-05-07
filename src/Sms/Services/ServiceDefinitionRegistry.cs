@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Text;
 
 namespace Sms.Services
 {
@@ -37,7 +38,7 @@ namespace Sms.Services
         {
             var attribute = (ServiceDefinitionAttribute)Attribute.GetCustomAttribute(type, typeof(ServiceDefinitionAttribute)) ?? DefaultServiceDefinition(type);
 
-            var customHeaders = Attribute.GetCustomAttributes(type, typeof (ServiceHeaderAttribute)).Cast<ServiceHeaderAttribute>().ToArray();
+            var customHeaders = Attribute.GetCustomAttributes(type, typeof(ServiceHeaderAttribute)).Cast<ServiceHeaderAttribute>().ToArray();
 
             return new ServiceDefinition(attribute.RequestType)
             {
@@ -48,10 +49,37 @@ namespace Sms.Services
 
         private static ServiceDefinitionAttribute DefaultServiceDefinition(Type type)
         {
-            return new ServiceDefinitionAttribute(type.Name, "json");
+            var generateTypeName = GenerateTypeName(type);
+            return new ServiceDefinitionAttribute(generateTypeName, "json");
         }
 
+        public static string GenerateTypeName(Type type)
+        {
+            var sb = new StringBuilder();
+            GenerateTypeName(type, sb);
+            return sb.ToString();
+        }
+        private static void GenerateTypeName(Type type, StringBuilder sb)
+        {
+            var indexOfGenericMark = type.Name.IndexOf('`');
+            sb.Append(indexOfGenericMark < 0 ? type.Name : type.Name.Substring(0, indexOfGenericMark));
 
+            if (indexOfGenericMark >= 0)
+            {
+                var generics = type.GetGenericArguments();
+                if (generics.Length > 0)
+                {
+                    sb.Append("<");
+                    foreach (var g in generics)
+                    {
+                        GenerateTypeName(g, sb);
+                        sb.Append(",");
+                    }
+                    sb.Remove(sb.Length - 1, 1);
+                    sb.Append(">");
+                }
+            }
+        }
     }
 
     public interface IServiceDefinitionRegistry

@@ -6,6 +6,7 @@ using System.Threading.Tasks;
 using NUnit.Framework;
 using Sms.Msmq;
 using Sms.Router;
+using Sms.Services;
 
 namespace Sms.Test.Services
 {
@@ -13,13 +14,13 @@ namespace Sms.Test.Services
     public class SerivceTaskReceiverTest
     {
         RouterService router;
-	    private FileBasedConfiguration fileBasedConfiguration;
+        private FileBasedConfiguration fileBasedConfiguration;
 
-	    [SetUp]
+        [SetUp]
         public void SetUp()
         {
-	        fileBasedConfiguration = FileBasedConfiguration.LoadConfiguration();
-			router = new RouterService(fileBasedConfiguration);
+            fileBasedConfiguration = FileBasedConfiguration.LoadConfiguration();
+            router = new RouterService(fileBasedConfiguration);
             Task.Factory.StartNew(router.Start);
         }
 
@@ -46,7 +47,7 @@ namespace Sms.Test.Services
             }
 
 
-			fileBasedConfiguration.Load(new List<ServiceEndpoint>()
+            fileBasedConfiguration.Load(new List<ServiceEndpoint>()
                 {
                     new ServiceEndpoint()
                         {
@@ -59,11 +60,30 @@ namespace Sms.Test.Services
                             MessageType = "HelloWorldMessage2",
                             ProviderName = "msmq",
                             QueueIdentifier =queueName
+                        },
+                         new ServiceEndpoint()
+                        {
+                            MessageType = ServiceDefinitionRegistry.GenerateTypeName(typeof(Event<HelloWorldMessage1>)),
+                            ProviderName = "msmq",
+                            QueueIdentifier =queueName
+                        }
+                        ,
+                         new ServiceEndpoint()
+                        {
+                            MessageType = ServiceDefinitionRegistry.GenerateTypeName(typeof(Event<HelloWorldMessage2>)),
+                            ProviderName = "msmq",
+                            QueueIdentifier =queueName
                         }
                 });
 
-            RouterSink.Default.Send(new HelloWorldMessage1() { Text = "Hi there. Its " + DateTime.Now.ToString("HH:mm") });
-            RouterSink.Default.Send(new HelloWorldMessage2() { Text = "Hi there. Its " + DateTime.Now.ToString("HH:mm") });
+
+            var helloWorldMessage1 = new HelloWorldMessage1() { Text = "Hi there. Its " + DateTime.Now.ToString("HH:mm") };
+            RouterSink.Default.Send(helloWorldMessage1);
+            var helloWorldMessage2 = new HelloWorldMessage2() { Text = "Hi there. Its " + DateTime.Now.ToString("HH:mm") };
+            RouterSink.Default.Send(helloWorldMessage2);
+
+            RouterSink.Default.Send(new Event<HelloWorldMessage1> { Item = helloWorldMessage1 });
+            RouterSink.Default.Send(new Event<HelloWorldMessage2> { Item = helloWorldMessage2 });
 
             bool helloWorld1 = false, helloWorld2 = false;
 
@@ -80,9 +100,18 @@ namespace Sms.Test.Services
                     helloWorld2 = true;
                 });
 
+                reciever.Register<Event<HelloWorldMessage2>>(message =>
+                {
+                    Console.WriteLine("Event hello world 1 occured");
+                });
+                reciever.Register<Event<HelloWorldMessage1>>(message =>
+                {
+                    Console.WriteLine("Event hello world 2 occured");
+                });
+
                 reciever.Start();
 
-                Thread.Sleep(1000);
+                Thread.Sleep(3000);
 
                 var error = reciever.Stop();
 
@@ -105,7 +134,12 @@ namespace Sms.Test.Services
         {
             public string Text { get; set; }
         }
+
+        public class Event<T>
+        {
+            public T Item { get; set; }
+        }
     }
 
-   
+
 }

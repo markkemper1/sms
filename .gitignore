@@ -12,3 +12,4 @@ ReSharper
 	
 # mstest test results
 TestResults
+src/Sms.sln.switchReferences.xml
