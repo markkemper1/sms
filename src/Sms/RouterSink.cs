@@ -59,6 +59,13 @@ namespace Sms
 			this.ConfigureMapping(from.RequestTypeName, to.RequestTypeName);
 		}
 
+		public void ConfigureMapping(Type fromType, Type toType)
+		{
+			var from = registry.Get(fromType);
+			var to = registry.Get(toType);
+			this.ConfigureMapping(from.RequestTypeName, to.RequestTypeName);
+		}
+
 		public void ConfigureMapping(string fromType, string toType)
 		{
 			Send(new SmsMessage(RouterService.ConfigureServiceMappingAddress, null,
