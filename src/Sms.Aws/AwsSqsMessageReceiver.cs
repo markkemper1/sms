@@ -56,34 +56,46 @@ namespace Sms.Aws
                     throw new InvalidOperationException("The Message is missing the To Attribute");
 
 
-                var headerKeys = new List<string>();
-                var headerValues = new List<string>();
+				SmsMessage message = null;
+	            if (awsMessage.MessageAttributes.ContainsKey(Config.ContentType)
+					&& awsMessage.MessageAttributes[Config.ContentType].StringValue ==
+					Config.ContentTypeBase64EncodedSmsMessageContent
+		            )
+	            {
+					message = SmsMessageContent.Serialization.FromBase64(awsMessage.Body)
+						.ToMessage();
+	            }
+	            else
+	            {
+		            var headerKeys = new List<string>();
+		            var headerValues = new List<string>();
 
-                for (int i = 0; i < 100; i++)
-                {
-                    var key = Config.HeaderKeysAttributename + i;
-                    var valueKey = Config.HeaderValuesAttributename +  i;
+		            for (int i = 0; i < 100; i++)
+		            {
+			            var key = Config.HeaderKeysAttributename + i;
+			            var valueKey = Config.HeaderValuesAttributename + i;
 
-                    if(!awsMessage.MessageAttributes.ContainsKey(key))
-                        break;
+			            if (!awsMessage.MessageAttributes.ContainsKey(key))
+				            break;
 
-                    headerKeys.Add(awsMessage.MessageAttributes[key].StringValue);
-                    headerValues.Add(awsMessage.MessageAttributes[valueKey].StringValue);
+			            headerKeys.Add(awsMessage.MessageAttributes[key].StringValue);
+			            headerValues.Add(awsMessage.MessageAttributes[valueKey].StringValue);
 
-                }
+		            }
 
-                var body = Encoding.UTF8.GetString(Convert.FromBase64String(awsMessage.Body));
+		            var body = Encoding.UTF8.GetString(Convert.FromBase64String(awsMessage.Body));
 
-                var message = new SmsMessageContent
-                {
-                    To = awsMessage.MessageAttributes[Config.ToAttributename].StringValue,
-                    Body = body,
-                    HeaderKeys = headerKeys.ToArray(),
-                    HeaderValues = headerValues.ToArray()
-                }.ToMessage();
+		            message = new SmsMessageContent
+		            {
+			            To = awsMessage.MessageAttributes[Config.ToAttributename].StringValue,
+			            Body = body,
+			            HeaderKeys = headerKeys.ToArray(),
+			            HeaderValues = headerValues.ToArray()
+		            }.ToMessage();
 
+	            }
 
-                Func<string, Action<bool>> onReceive = receiptHandle =>
+	            Func<string, Action<bool>> onReceive = receiptHandle =>
                 {
                     Action<bool> handler = x =>
                     {

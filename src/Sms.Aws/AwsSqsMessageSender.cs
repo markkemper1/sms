@@ -32,14 +32,14 @@ namespace Sms.Aws
             int tryNo = 1;
             var m = SmsMessageContent.Create(smsMessage);
 
+	        var payload = SmsMessageContent.Serialization.ToBase64(m);
+
             while (tryNo < 4)
             {
 
                 var sendRequest = new SendMessageRequest();
 
-                var bytes = Encoding.UTF8.GetBytes(m.Body);
-                sendRequest.MessageBody = Convert.ToBase64String(bytes);
-
+	            sendRequest.MessageBody = payload;
                 sendRequest.QueueUrl = queueUrl;
 
                 sendRequest.MessageAttributes.Add(Config.ToAttributename, new MessageAttributeValue()
@@ -48,29 +48,12 @@ namespace Sms.Aws
                     StringValue = m.To
                 });
 
-                if (m.HeaderKeys.Any())
-                {
-                    int i = 0;
-                    foreach (var header in m.HeaderKeys)
-                    {
-                        sendRequest.MessageAttributes.Add(Config.HeaderKeysAttributename +  i, new MessageAttributeValue()
-                        {
-                            DataType = "String",
-                            StringValue = header
-                        });
-                        i++;
-                    }
-                    i = 0;
-                    foreach (var header in m.HeaderValues)
-                    {
-                        sendRequest.MessageAttributes.Add(Config.HeaderValuesAttributename  + i, new MessageAttributeValue()
-                        {
-                            DataType = "String",
-                            StringValue = header
-                        });
-                        i++;
-                    }
-                }
+				sendRequest.MessageAttributes.Add(Config.ContentType, new MessageAttributeValue()
+				{
+					DataType = "String",
+					StringValue = Config.ContentTypeBase64EncodedSmsMessageContent
+				});
+
                 try
                 {
 

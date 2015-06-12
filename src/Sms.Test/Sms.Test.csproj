@@ -75,6 +75,7 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="App_Start\DotNetConfigHelperStartup.cs" />
+    <Compile Include="Messaging\SerializationTest.cs" />
     <Compile Include="Routing\RdsConfigurationTest.cs" />
     <Compile Include="Setup.cs" />
     <Compile Include="Messaging\BrokerTest.cs" />

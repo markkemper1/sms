@@ -18,6 +18,8 @@ namespace Sms.Aws
             return new AppSettingItem(key, value);
         }
 
+		public const string ContentType  = "body-content-type";
+		public const string ContentTypeBase64EncodedSmsMessageContent = "Base64EncodedSmsMessageContent";
         public const string ToAttributename ="to";
         public const string HeaderKeysAttributename ="headerskey";
         public const string HeaderValuesAttributename ="headervalues";
