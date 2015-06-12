@@ -11,6 +11,7 @@ namespace Sms.Router
 		void Remove(ServiceEndpoint service);
 		void RemoveMapping(string fromMessageType, string toMessageType);
 
+		void Clear();
 
 	}
 }

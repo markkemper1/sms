@@ -84,6 +84,12 @@ namespace Sms.Router
 			}
 		}
 
+		public void Clear()
+		{
+			serviceMapping.Clear();
+			services.Clear();
+		}
+
 		public void Load(IEnumerable<ServiceEndpoint> endpoints)
 		{
 			lock (this)

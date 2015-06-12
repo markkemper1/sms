@@ -52,6 +52,12 @@ namespace Sms
 				}));
 		}
 
+
+		public void ClearConfiguration()
+		{
+			Send(new SmsMessage(RouterService.ConfigureServiceEndpointAddress, null));
+		}
+
 		public void ConfigureMapping<FROM,TO>()
 		{
 			var from = registry.Get<FROM>();

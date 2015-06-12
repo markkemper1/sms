@@ -115,6 +115,37 @@ namespace Sms.Test.Routing
 			rdsConfig.Remove(service2);
 		}
 
+
+		[Test]
+		public void should_clear_all()
+		{
+			var service = new ServiceEndpoint()
+			{
+				MessageType = "Hello1",
+				ProviderName = "msmq",
+				QueueIdentifier = "testing"
+			};
+
+			var service2 = new ServiceEndpoint()
+			{
+				MessageType = "Hello2",
+				ProviderName = "msmq",
+				QueueIdentifier = "testing2"
+			};
+
+
+			rdsConfig.Add(service);
+			rdsConfig.Add(service2);
+
+			rdsConfig.AddMapping("HelloRoot", "Hello1");
+			rdsConfig.AddMapping("HelloRoot", "Hello2");
+
+			rdsConfig.Clear();
+
+			Assert.That(rdsConfig.Get("HelloRoot").Count(), Is.EqualTo(0));
+			Assert.That(rdsConfig.Get("Hello1").Count(), Is.EqualTo(0));
+			Assert.That(rdsConfig.Get("Hello2").Count(), Is.EqualTo(0));
+		}
 	}
 
 }

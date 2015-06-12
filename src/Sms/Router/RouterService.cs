@@ -9,6 +9,7 @@ namespace Sms.Router
 	public class RouterService
 	{
 		public const String ConfigureServiceEndpointAddress = "SmsRouter.Configure.Endpoint.Add";
+		public const String ConfigureServiceClearAll = "SmsRouter.Configure.Clear";
 		public const String ConfigureServiceEndpointAddressRemove = "SmsRouter.Configure.Endpoint.Remove";
 		public const String ConfigureServiceMappingAddress= "SmsRouter.Configure.Mapping.Add";
 		public const String ConfigureServiceMappingAddressRemove = "SmsRouter.Configure.Mapping.Remove";
@@ -143,6 +144,14 @@ namespace Sms.Router
 				message.Success();
 				return true;
 			}
+
+			if (message.Item.ToAddress == ConfigureServiceClearAll)
+			{
+				Config.Clear();
+				message.Success();
+				return true;
+			}
+
 			return false;
 		}
 

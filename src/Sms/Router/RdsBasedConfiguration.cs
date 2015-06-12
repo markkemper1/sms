@@ -172,6 +172,25 @@ namespace Sms.Router
 			this.lastQueryTimeUTc = DateTime.MinValue;
 		}
 
+		public void Clear()
+		{
+			using (var connection = getConnection())
+			{
+				connection.Open();
+
+				using (var command = connection.CreateCommand())
+				{
+					command.CommandText = String.Format("DELETE FROM {0}", routingTableName);
+					command.ExecuteNonQuery();
+
+					command.CommandText = String.Format("DELETE FROM {0}",endPointTableName);
+					
+					command.ExecuteNonQuery();
+				}
+			}
+			this.lastQueryTimeUTc = DateTime.MinValue;
+		}
+
 		public void EnsureTableExists()
 		{
 			var table1 = String.Format(@"IF NOT (EXISTS (SELECT * 
