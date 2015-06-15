@@ -111,7 +111,8 @@ namespace Sms.Router
 				{
 					MessageType = message.Item.Headers["MessageType"],
 					ProviderName = message.Item.Headers["ProviderName"],
-					QueueIdentifier = message.Item.Headers["QueueIdentifier"]
+					QueueIdentifier = message.Item.Headers["QueueIdentifier"],
+					Version = message.Item.Headers["Version"]
 				});
 
 				message.Success();
@@ -124,7 +125,8 @@ namespace Sms.Router
 				{
 					MessageType = message.Item.Headers["MessageType"],
 					ProviderName = message.Item.Headers["ProviderName"],
-					QueueIdentifier = message.Item.Headers["QueueIdentifier"]
+					QueueIdentifier = message.Item.Headers["QueueIdentifier"],
+					Version = message.Item.Headers["Version"]
 				});
 
 				message.Success();
@@ -133,7 +135,7 @@ namespace Sms.Router
 
 			if (message.Item.ToAddress == ConfigureServiceMappingAddress)
 			{
-				Config.AddMapping(message.Item.Headers["FromType"], message.Item.Headers["ToType"]);
+				Config.AddMapping(message.Item.Headers["FromType"], message.Item.Headers["ToType"],message.Item.Headers["Version"]);
 				message.Success();
 				return true;
 			}
@@ -147,7 +149,7 @@ namespace Sms.Router
 
 			if (message.Item.ToAddress == ConfigureServiceClearAll)
 			{
-				Config.Clear();
+				Config.Clear(message.Item.Headers["QueueIdentifier"], message.Item.Headers["Version"]);
 				message.Success();
 				return true;
 			}

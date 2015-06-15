@@ -115,8 +115,8 @@ namespace Sms.RoutingServiceTest
 				}
 			});
 
-			loadFileBasedConfiguration.AddMapping("testService", "testService1");
-			loadFileBasedConfiguration.AddMapping("testService", "testService2");
+			loadFileBasedConfiguration.AddMapping("testService", "testService1", "1");
+			loadFileBasedConfiguration.AddMapping("testService", "testService2", "1");
 			Thread.Sleep(1000);
 			router.Start();
 

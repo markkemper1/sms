@@ -63,7 +63,6 @@ namespace Sms.Messaging
                                 catch
                                 {
                                     message.Failed();
-                                    throw;
                                 }
                             }
                             else

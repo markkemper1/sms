@@ -25,7 +25,7 @@ namespace Sms.Test.Routing
 				connection.ConnectionString = config.ConnectionString;
 				return connection;
 			};
-			rdsConfig = new RdsBasedConfiguration(getConnection, "TestRdsBasedConfiguration", "mt", "pn", "queue");
+			rdsConfig = new RdsBasedConfiguration(getConnection, "TestEndPoint", "TestRouting");
 			rdsConfig.EnsureTableExists();
 		}
 
@@ -87,8 +87,8 @@ namespace Sms.Test.Routing
 			rdsConfig.Add(service);
 			rdsConfig.Add(service2);
 
-			rdsConfig.AddMapping("HelloRoot", "Hello1");
-			rdsConfig.AddMapping("HelloRoot", "Hello2");
+			rdsConfig.AddMapping("HelloRoot", "Hello1", "1");
+			rdsConfig.AddMapping("HelloRoot", "Hello2", "1");
 
 			var results = rdsConfig.Get("HelloRoot");
 
@@ -117,34 +117,53 @@ namespace Sms.Test.Routing
 
 
 		[Test]
-		public void should_clear_all()
+		public void should_clear_all_items_without_version()
 		{
 			var service = new ServiceEndpoint()
 			{
 				MessageType = "Hello1",
 				ProviderName = "msmq",
-				QueueIdentifier = "testing"
+				QueueIdentifier = "testing",
+				Version = "1.0"
 			};
 
 			var service2 = new ServiceEndpoint()
 			{
 				MessageType = "Hello2",
 				ProviderName = "msmq",
-				QueueIdentifier = "testing2"
+				QueueIdentifier = "testing2",
+				Version = "1.0"
+			};
+
+			var service3 = new ServiceEndpoint()
+			{
+				MessageType = "Hello1",
+				ProviderName = "msmq",
+				QueueIdentifier = "testing",
+				Version = "2.0"
+			};
+
+			var service4 = new ServiceEndpoint()
+			{
+				MessageType = "Hello2",
+				ProviderName = "msmq",
+				QueueIdentifier = "testing2",
+				Version = "2.0"
 			};
 
 
 			rdsConfig.Add(service);
 			rdsConfig.Add(service2);
 
-			rdsConfig.AddMapping("HelloRoot", "Hello1");
-			rdsConfig.AddMapping("HelloRoot", "Hello2");
+			rdsConfig.AddMapping("HelloRoot", "Hello1", null);
+			rdsConfig.AddMapping("HelloRoot", "Hello2", "2");
 
-			rdsConfig.Clear();
+			rdsConfig.Clear(service.QueueIdentifier, "1.0");
+			rdsConfig.Clear(service2.QueueIdentifier, "1.0");
 
-			Assert.That(rdsConfig.Get("HelloRoot").Count(), Is.EqualTo(0));
-			Assert.That(rdsConfig.Get("Hello1").Count(), Is.EqualTo(0));
-			Assert.That(rdsConfig.Get("Hello2").Count(), Is.EqualTo(0));
+			Assert.That(rdsConfig.Get("HelloRoot").Count(), Is.EqualTo(1));
+			Assert.That(rdsConfig.Get("Hello1").Count(), Is.EqualTo(1));
+			Assert.That(rdsConfig.Get("Hello2").Count(), Is.EqualTo(1));
 		}
 	}
 

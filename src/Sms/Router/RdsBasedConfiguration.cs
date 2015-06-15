@@ -26,22 +26,17 @@ namespace Sms.Router
 
 		public RdsBasedConfiguration(Func<IDbConnection> getConnection,
 			string endPointTableName = "sms_router_endpoint",
-			string endPointMessageTypeColName = "MessageType",
-			string endPointProviderNameColName = "ProviderName",
-			string endPointQueueIdentifierColName = "QueueIdentifier",
-			string routingTableName = "sms_router_mapping",
-			string routingFromColName = "sms_router_from",
-			string routingToColName = "sms_router_to"
+			string routingTableName = "sms_router_mapping"
 			)
 		{
 			this.getConnection = getConnection;
 			this.endPointTableName = endPointTableName;
-			this.endPointMessageTypeColName = endPointMessageTypeColName;
-			this.endPointProviderNameColName = endPointProviderNameColName;
-			this.endPointQueueIdentifierColName = endPointQueueIdentifierColName;
+			this.endPointMessageTypeColName = "MessageType";
+			this.endPointProviderNameColName = "ProviderName";
+			this.endPointQueueIdentifierColName = "QueueIdentifier";
 			this.routingTableName = routingTableName;
-			this.routingFromColName = routingFromColName;
-			this.routingToColName = routingToColName;
+			this.routingFromColName = "sms_router_from";
+			this.routingToColName = "sms_router_to";
 		}
 
 		public IEnumerable<ServiceEndpoint> Get(string serviceName)
@@ -90,7 +85,7 @@ namespace Sms.Router
 
 				using (var command = connection.CreateCommand())
 				{
-					command.CommandText = String.Format("UPDATE {0} SET {2} = @ProviderName, {3}=@QueueIdentifier WHERE {1} = @MessageType",
+					command.CommandText = String.Format("UPDATE {0} SET {2} = @ProviderName, {3}=@QueueIdentifier, Version=@Version WHERE {1} = @MessageType",
 						endPointTableName, endPointMessageTypeColName, endPointProviderNameColName, endPointQueueIdentifierColName);
 
 					AddParameters(command, service);
@@ -101,7 +96,7 @@ namespace Sms.Router
 						return;
 					}
 
-					command.CommandText = String.Format("INSERT INTO {0} ( {1}, {2}, {3} ) VALUES (  @MessageType, @ProviderName,  @QueueIdentifier )",
+					command.CommandText = String.Format("INSERT INTO {0} ( {1}, {2}, {3}, Version ) VALUES (  @MessageType, @ProviderName,  @QueueIdentifier, @Version )",
 						endPointTableName, endPointMessageTypeColName, endPointProviderNameColName, endPointQueueIdentifierColName);
 					command.ExecuteNonQuery();
 				}
@@ -127,7 +122,7 @@ namespace Sms.Router
 			this.lastQueryTimeUTc = DateTime.MinValue;
 		}
 
-		public void AddMapping(string fromMessageType, string toMessageType)
+		public void AddMapping(string fromMessageType, string toMessageType, string version)
 		{
 			using (var connection = getConnection())
 			{
@@ -138,15 +133,21 @@ namespace Sms.Router
 					command.CommandText = String.Format("SELECT 1 FROM {0} WHERE {1} = @From AND {2}=@To",
 						routingTableName, routingFromColName, routingToColName);
 
-					AddMappingParameters(command, fromMessageType, toMessageType);
+					AddMappingParameters(command, fromMessageType, toMessageType, version);
 
 					var exists = command.ExecuteScalar();
+
 					if (exists != null && !DBNull.Value.Equals(exists))
 					{
+						command.CommandText = String.Format("Update {0} Set Version = @Version WHERE {1} = @From AND {2}=@To",
+						routingTableName, routingFromColName, routingToColName);
+
+						AddMappingParameters(command, fromMessageType, toMessageType, version);
+
 						return;
 					}
 
-					command.CommandText = String.Format("INSERT INTO {0} ( {1}, {2} ) VALUES (@From, @To)",
+					command.CommandText = String.Format("INSERT INTO {0} ( {1}, {2}, Version) VALUES (@From, @To, @Version)",
 						routingTableName, routingFromColName, routingToColName);
 					command.ExecuteNonQuery();
 				}
@@ -165,14 +166,14 @@ namespace Sms.Router
 					command.CommandText = String.Format("DELETE FROM {0} WHERE {1} = @From AND {2}=@To",
 						routingTableName, routingFromColName, routingToColName);
 
-					AddMappingParameters(command, fromMessageType, toMessageType);
+					AddMappingParameters(command, fromMessageType, toMessageType, null);
 					command.ExecuteNonQuery();
 				}
 			}
 			this.lastQueryTimeUTc = DateTime.MinValue;
 		}
 
-		public void Clear()
+		public void Clear(string queueIdentifier, string exceptVersion)
 		{
 			using (var connection = getConnection())
 			{
@@ -180,10 +181,21 @@ namespace Sms.Router
 
 				using (var command = connection.CreateCommand())
 				{
-					command.CommandText = String.Format("DELETE FROM {0}", routingTableName);
+					command.CommandText = String.Format("DELETE FROM {0} WHERE Version <> @version", routingTableName);
+
+					var p3 = command.CreateParameter();
+					p3.ParameterName = "Version";
+					p3.Value = exceptVersion == null ? DBNull.Value : (object)exceptVersion;
+					command.Parameters.Add(p3);
+
 					command.ExecuteNonQuery();
 
-					command.CommandText = String.Format("DELETE FROM {0}",endPointTableName);
+					var p4 = command.CreateParameter();
+					p4.ParameterName = "queueIdentifier";
+					p4.Value = exceptVersion == null ? DBNull.Value : (object)queueIdentifier;
+					command.Parameters.Add(p4);
+
+					command.CommandText = String.Format("DELETE FROM {0} Where {1} = @queueIdentifier  AND Version <> @version", endPointTableName, endPointQueueIdentifierColName);
 					
 					command.ExecuteNonQuery();
 				}
@@ -220,6 +232,16 @@ namespace Sms.Router
 				)
 			END", routingTableName, routingFromColName, routingToColName);
 
+
+			var versionColumnMap = @"
+IF NOT EXISTS(SELECT *
+          FROM   INFORMATION_SCHEMA.COLUMNS
+          WHERE  TABLE_NAME = '{0}'
+                 AND COLUMN_NAME = 'version') 
+BEGIN
+	Alter Table {0} add version varchar(50)
+END
+";
 			using (var connection = getConnection())
 			{
 				connection.Open();
@@ -230,9 +252,20 @@ namespace Sms.Router
 					Trace.WriteLine(table1);
 					command.ExecuteNonQuery();
 
+					command.CommandText = String.Format(versionColumnMap, endPointTableName);
+					Trace.WriteLine(command.CommandText);
+					command.ExecuteNonQuery();
+
+					
+
 					command.CommandText = table2;
 					Trace.WriteLine(table2);
 					command.ExecuteNonQuery();
+
+					command.CommandText = String.Format(versionColumnMap, routingTableName);
+					Trace.WriteLine(command.CommandText);
+					command.ExecuteNonQuery();
+
 				}
 			}
 		}
@@ -253,9 +286,15 @@ namespace Sms.Router
 			p3.ParameterName = "QueueIdentifier";
 			p3.Value = service.QueueIdentifier;
 			command.Parameters.Add(p3);
+
+
+			var p4 = command.CreateParameter();
+			p4.ParameterName = "Version";
+			p4.Value = service.Version == null ? DBNull.Value : (object)service.Version;
+			command.Parameters.Add(p4);
 		}
 
-		private void AddMappingParameters(IDbCommand command, string from, string to)
+		private void AddMappingParameters(IDbCommand command, string from, string to, string version)
 		{
 			var p1 = command.CreateParameter();
 			p1.ParameterName = "From";
@@ -266,6 +305,11 @@ namespace Sms.Router
 			p2.ParameterName = "To";
 			p2.Value = to;
 			command.Parameters.Add(p2);
+
+			var p3 = command.CreateParameter();
+			p3.ParameterName = "Version";
+			p3.Value = version == null ? DBNull.Value : (object)version;
+			command.Parameters.Add(p3);
 		}
 
 		private void LoadServices()

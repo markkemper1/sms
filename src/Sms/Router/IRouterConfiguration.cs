@@ -7,11 +7,11 @@ namespace Sms.Router
 		IEnumerable<ServiceEndpoint> Get(string serviceName);
 
 		void Add(ServiceEndpoint service);
-		void AddMapping(string fromMessageType, string toMessageType);
+		void AddMapping(string fromMessageType, string toMessageType, string version);
 		void Remove(ServiceEndpoint service);
 		void RemoveMapping(string fromMessageType, string toMessageType);
 
-		void Clear();
+		void Clear(string queueIdentifier, string exceptVersion);
 
 	}
 }

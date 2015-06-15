@@ -30,7 +30,7 @@ namespace Sms.RoutingServiceTest
 				connection.ConnectionString = config.ConnectionString;
 				return connection;
 			};
-			rdsConfig = new RdsBasedConfiguration(getConnection, "TestRdsBasedConfiguration", "mt", "pn", "queue");
+			rdsConfig = new RdsBasedConfiguration(getConnection, "TestEndPoint", "TestRouting");
 			rdsConfig.EnsureTableExists();
 		}	
 
@@ -110,10 +110,10 @@ namespace Sms.RoutingServiceTest
 
 			Thread.Sleep(1000);
 
-			RouterSink.Default.ConfigureEndpoint("testService1", "msmq", "helloWordService");
-			RouterSink.Default.ConfigureEndpoint("testService2", "msmq", "helloWordService");
-			RouterSink.Default.ConfigureMapping("testService", "testService1");
-			RouterSink.Default.ConfigureMapping("testService", "testService2");
+			RouterSink.Default.ConfigureEndpoint("testService1", "msmq", "helloWordService", "1");
+			RouterSink.Default.ConfigureEndpoint("testService2", "msmq", "helloWordService", "1");
+			RouterSink.Default.ConfigureMapping("testService", "testService1", "1");
+			RouterSink.Default.ConfigureMapping("testService", "testService2", "1");
 
 			Thread.Sleep(2000);
 			

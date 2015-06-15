@@ -49,13 +49,14 @@ namespace Sms.Router
 			}
 		}
 
-		public void AddMapping(string fromMessageType, string toMessageType)
+		public void AddMapping(string fromMessageType, string toMessageType, string version)
 		{
 			lock (this)
 			{
 				if (!serviceMapping.ContainsKey(fromMessageType))
 					serviceMapping[fromMessageType] = new List<string>();
 
+				serviceMapping[fromMessageType].RemoveAll(x => x == toMessageType);
 				serviceMapping[fromMessageType].Add(toMessageType);
 			}
 		}
@@ -84,10 +85,17 @@ namespace Sms.Router
 			}
 		}
 
-		public void Clear()
+		public void Clear(string queueIdentifier, string exceptVersion)
 		{
-			serviceMapping.Clear();
-			services.Clear();
+			var servicesToRemove = services.Where(x => x.Value.QueueIdentifier == queueIdentifier && x.Value.Version != exceptVersion).Select(x=>x.Value).ToArray();
+
+			services = services.Where(x => !servicesToRemove.Contains(x.Value)).ToDictionary(x => x.Key, x => x.Value);
+
+			foreach (var map in serviceMapping.Values)
+			{
+				map.RemoveAll(target => servicesToRemove.Select(x => x.QueueIdentifier).Any(x => x == target));
+			}
+			
 		}
 
 		public void Load(IEnumerable<ServiceEndpoint> endpoints)
